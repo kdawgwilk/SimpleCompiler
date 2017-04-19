@@ -1,0 +1,3 @@
+// the configured options and settings for SimpleCompiler
+#define SimpleCompiler_VERSION_MAJOR @SimpleCompiler_VERSION_MAJOR@
+#define SimpleCompiler_VERSION_MINOR @SimpleCompiler_VERSION_MINOR@

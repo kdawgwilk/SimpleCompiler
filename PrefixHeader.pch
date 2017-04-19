@@ -1,0 +1,49 @@
+//
+//  pchheader.h
+//  SimpleCompiler
+//
+//  Created by Kaden Wilkinson on 2/16/17.
+//  Copyright © 2017 Kaden Wilkinson. All rights reserved.
+//
+
+#ifndef pchheader_h
+#define pchheader_h
+
+// Include any system framework and library headers here that should be included in all compilation units.
+// You will also need to set the Prefix Header build setting of one or more of your targets to reference this file.
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <fstream>
+#include <ostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <sstream>
+
+#include <gtest/gtest.h>
+#include <gmock/gmock.h>
+
+#include "Debug.hpp"
+
+using testing::InitGoogleTest;
+using testing::Test;
+using testing::Return;
+using testing::ExitedWithCode;
+using testing::_;
+
+
+using std::ifstream;
+using std::stringstream;
+using std::streamoff;
+using std::cerr;
+using std::cout;
+using std::endl;
+using std::getline;
+using std::ostream;
+using std::string;
+using std::vector;
+using std::atoi;
+using std::binary_search;
+
+#endif /* pchheader_h */

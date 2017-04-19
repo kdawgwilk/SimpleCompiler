@@ -1,0 +1,53 @@
+//
+//  MachineStates.h
+//  SimpleCompiler
+//
+//  Created by Kaden Wilkinson on 2/22/17.
+//  Copyright © 2017 Kaden Wilkinson. All rights reserved.
+//
+
+#ifndef MachineStates_h
+#define MachineStates_h
+
+
+enum MachineState {
+    START_STATE,
+    IDENTIFIER_STATE,
+    INTEGER_STATE,
+    PLUS_STATE,
+    PLUS_PLUS_STATE,
+    PLUS_EQUAL_STATE,
+    MINUS_STATE,
+    MINUS_MINUS_STATE,
+    MINUS_EQUAL_STATE,
+    TIMES_STATE,
+    TIMES_EQUAL_STATE,
+    DIVIDE_STATE,
+    DIVIDE_EQUAL_STATE,
+    LINE_COMMENT_STATE,
+    MULTILINE_COMMENT_START_STATE,
+    MULTILINE_COMMENT_END_STATE,
+    LESS_THAN_STATE,
+    LESS_THAN_OR_EQUAL_STATE,
+    INSERTION_STATE,
+    GREATER_THAN_STATE,
+    GREATER_THAN_OR_EQUAL_STATE,
+    EXTRACTION_STATE,
+    EQUAL_STATE,
+    EQUAL_TO_STATE,
+    LPAREN_STATE,
+    RPAREN_STATE,
+    LBRACKET_STATE,
+    RBRACKET_STATE,
+    LCURLY_STATE,
+    RCURLY_STATE,
+    NOT_STATE,
+    NOT_EQUAL_STATE,
+    SEMICOLON_STATE,
+
+    ENDFILE_STATE,
+    CANT_MOVE_STATE,
+    LAST_STATE
+};
+
+#endif /* MachineStates_h */
