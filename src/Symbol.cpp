@@ -13,60 +13,71 @@ SymbolTableClass::SymbolTableClass() {}
 SymbolTableClass::~SymbolTableClass() {}
 
 // returns true if <s> is already in the symbol table.
-bool SymbolTableClass::Exists(string s) {
-    for (size_t i = 0; i < mVariables.size(); i++) {
-        if (mVariables[i].mLabel == s) {
+bool SymbolTableClass::Exists(string label) {
+    for (auto i = GetCount() - 1; i >= 0; i--) {
+        if (mVariables[i].mLabel == label) {
             return true;
         }
     }
     return false;
 }
 
+bool SymbolTableClass::ExistsInCurrentScope(string label) {
+    if (mScope.size() > 0) {
+        int currentVariableCount = GetCount() - 1;
+        int lastScopeVariableCount = mScope[mScope.size() - 1];
+        for (auto i = currentVariableCount; i >= lastScopeVariableCount; i--) {
+            if (mVariables[i].mLabel == label) {
+                return true;
+            }
+        }
+        return false;
+    }
+    return Exists(label);
+}
+
 // adds <s> to the symbol table,
 // or quits if it was already there
-void SymbolTableClass::AddEntry(string s) {
-    if (Exists(s)) {
-        cerr << "Entry already exists in the SymbolTable: " << s << endl;
-        exit(1);
+void SymbolTableClass::AddEntry(string label) {
+    if (ExistsInCurrentScope(label)) {
+        throw std::invalid_argument("Entry already exists in the SymbolTable");
     }
     Variable var;
-    var.mLabel = s;
+    var.mLabel = label;
     mVariables.push_back(var);
 }
 
 // returns the current value of variable <s>, when
 // interpreting. Meaningless for Coding and Executing.
 // Prints a message and quits if variable s does not exist.
-int SymbolTableClass::GetValue(string s) {
-    for (size_t i = 0; i < mVariables.size(); i++) {
-        if (mVariables[i].mLabel == s) {
+int SymbolTableClass::GetValue(string label) {
+    for (auto i = GetCount() - 1; i >= 0; i--) {
+        if (mVariables[i].mLabel == label) {
             int value = mVariables[i].mValue;
             return value;
         }
     }
-    cerr << "Entry doesn't exist in the SymbolTable: " << s << endl;
-    exit(1);
+    throw std::invalid_argument("Entry doesn't exist in the SymbolTable");
 }
 
 // sets variable <s> to the given value, when interpreting.
 // Meaningless for Coding and Executing.
 // Prints a message and quits if variable s does not exist.
-void SymbolTableClass::SetValue(string s, int v) {
-    for (size_t i = 0; i < mVariables.size(); i++) {
-        if (mVariables[i].mLabel == s) {
-            mVariables[i].mValue = v;
+void SymbolTableClass::SetValue(string label, int value) {
+    for (auto i = GetCount() - 1; i >= 0; i--) {
+        if (mVariables[i].mLabel == label) {
+            mVariables[i].mValue = value;
             return;
         }
     }
-    cerr << "Entry doesn't exist in the SymbolTable: " << s << endl;
-    exit(1);
+    throw std::invalid_argument("Entry doesn't exist in the SymbolTable");
 }
 
 // returns the index of where variable <s> is. // returns -1 if variable <s> is not there.
-int SymbolTableClass::GetIndex(string s) {
-    for (size_t i = 0; i < mVariables.size(); i++) {
-        if (mVariables[i].mLabel == s) {
-            return int(i);
+int SymbolTableClass::GetIndex(string label) {
+    for (int i = GetCount() - 1; i >= 0; i--) {
+        if (mVariables[i].mLabel == label) {
+            return i;
         }
     }
     return -1;
@@ -79,10 +90,15 @@ int SymbolTableClass::GetCount() {
 
 // TODO: Push the mVariables length to mScope list
 void SymbolTableClass::PushScope() {
-
+    mScope.push_back((int)mVariables.size());
 }
 
 // TODO: Pop the top mVariables length from mScope and delelete variables
 void SymbolTableClass::PopScope() {
-
+    int currentVariableCount = GetCount();
+    int lastScopeVariableCount = mScope[mScope.size() - 1];
+    mScope.pop_back();
+    for (auto i = currentVariableCount; i > lastScopeVariableCount; i--) {
+        mVariables.pop_back();
+    }
 }

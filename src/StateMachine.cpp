@@ -22,6 +22,7 @@ StateMachineClass::StateMachineClass()
     // Set legal moves for each state
     // START_STATE
     mLegalMoves[START_STATE][WHITESPACE_CHAR]             = START_STATE;
+    mLegalMoves[START_STATE][NEWLINE_CHAR]                = START_STATE;
     mLegalMoves[START_STATE][DIGIT_CHAR]                  = INTEGER_STATE;
     mLegalMoves[START_STATE][FSLASH_CHAR]                 = DIVIDE_STATE;
     mLegalMoves[START_STATE][ENDFILE_CHAR]                = ENDFILE_STATE;
@@ -34,6 +35,8 @@ StateMachineClass::StateMachineClass()
     mLegalMoves[START_STATE][RBRACKET_CHAR]               = RBRACKET_STATE;
     mLegalMoves[START_STATE][GREATER_THAN_CHAR]           = GREATER_THAN_STATE;
     mLegalMoves[START_STATE][EQUAL_CHAR]                  = EQUAL_STATE;
+    mLegalMoves[START_STATE][AND_CHAR]                    = AND_STATE;
+    mLegalMoves[START_STATE][VBAR_CHAR]                   = VBAR_STATE;
     mLegalMoves[START_STATE][EXCLAMATION_CHAR]            = NOT_STATE;
     mLegalMoves[START_STATE][STAR_CHAR]                   = TIMES_STATE;
     mLegalMoves[START_STATE][SEMICOLON_CHAR]              = SEMICOLON_STATE;
@@ -54,6 +57,10 @@ StateMachineClass::StateMachineClass()
     mLegalMoves[GREATER_THAN_STATE][GREATER_THAN_CHAR]    = EXTRACTION_STATE;
 
     mLegalMoves[EQUAL_STATE][EQUAL_CHAR]                  = EQUAL_TO_STATE;
+
+    mLegalMoves[AND_STATE][AND_CHAR]                      = AND_AND_STATE;
+
+    mLegalMoves[VBAR_STATE][VBAR_CHAR]                    = VBAR_VBAR_STATE;
 
     mLegalMoves[NOT_STATE][EQUAL_CHAR]                    = NOT_EQUAL_STATE;
 
@@ -114,6 +121,8 @@ StateMachineClass::StateMachineClass()
     mCorrespondingTokenTypes[EQUAL_STATE]                 = ASSIGNMENT_TOKEN;
     mCorrespondingTokenTypes[EQUAL_TO_STATE]              = EQUAL_TOKEN;
     mCorrespondingTokenTypes[NOT_EQUAL_STATE]             = NOT_EQUAL_TOKEN;
+    mCorrespondingTokenTypes[AND_AND_STATE]               = AND_TOKEN;
+    mCorrespondingTokenTypes[VBAR_VBAR_STATE]             = OR_TOKEN;
     mCorrespondingTokenTypes[TIMES_STATE]                 = TIMES_TOKEN;
     mCorrespondingTokenTypes[TIMES_EQUAL_STATE]           = TIMES_EQUAL_TOKEN;
     mCorrespondingTokenTypes[SEMICOLON_STATE]             = SEMICOLON_TOKEN;
@@ -134,7 +143,7 @@ MachineState StateMachineClass::GetCurrentState() {
 
 MachineState StateMachineClass::UpdateState(const char currentCharacter, TokenType &correspondingTokenType) {
     // convert the input character into an input character type
-    CharacterType charType = BAD_CHAR;
+    auto charType = BAD_CHAR;
 
 
     if (isdigit(currentCharacter)) {
@@ -146,6 +155,9 @@ MachineState StateMachineClass::UpdateState(const char currentCharacter, TokenTy
     }
 
     switch (currentCharacter) {
+        case '\n':
+            charType = NEWLINE_CHAR;
+            break;
         case '_':
             charType = UNDERSCORE_CHAR;
             break;
@@ -172,6 +184,12 @@ MachineState StateMachineClass::UpdateState(const char currentCharacter, TokenTy
             break;
         case '=':
             charType = EQUAL_CHAR;
+            break;
+        case '&':
+            charType = AND_CHAR;
+            break;
+        case '|':
+            charType = VBAR_CHAR;
             break;
         case '(':
             charType = LPAREN_CHAR;

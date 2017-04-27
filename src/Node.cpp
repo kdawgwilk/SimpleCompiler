@@ -31,6 +31,10 @@ void StartNode::Interpret() {
     mProgramNode->Interpret();
 }
 
+void StartNode::Code(InstructionsClass &instructions) {
+    mProgramNode->Code(instructions);
+}
+
 // MARK: - Program
 
 ProgramNode::ProgramNode(BlockNode *blockNode)
@@ -48,11 +52,15 @@ void ProgramNode::Interpret() {
     mBlockNode->Interpret();
 }
 
+void ProgramNode::Code(InstructionsClass &instructions) {
+    mBlockNode->Code(instructions);
+}
+
 // MARK: - Block
 
 BlockNode::BlockNode(SymbolTableClass *symbolTable, StatementGroupNode *statmentGroupNode)
-: mSymbolTable(symbolTable)
-, mStatementGroupNode(statmentGroupNode) {
+: mStatementGroupNode(statmentGroupNode)
+, mSymbolTable(symbolTable) {
     MSG("BlockNode - Init")
 }
 
@@ -68,6 +76,12 @@ void BlockNode::Interpret() {
     mSymbolTable->PopScope();
 }
 
+void BlockNode::Code(InstructionsClass &instructions) {
+    mSymbolTable->PushScope();
+    mStatementGroupNode->Code(instructions);
+    mSymbolTable->PopScope();
+}
+
 // MARK: - StatementGroup
 
 StatementGroupNode::StatementGroupNode() {
@@ -77,7 +91,9 @@ StatementGroupNode::StatementGroupNode() {
 StatementGroupNode::~StatementGroupNode() {
     MSG("StatementGroupNode - Delete Begin")
     for (StatementNode *statement : mStatementNodes) {
-        delete statement;
+        if (statement != NULL) {
+            delete statement;
+        }
     }
     MSG("StatementGroupNode - Delete End")
 }
@@ -88,15 +104,27 @@ void StatementGroupNode::AddStatement(StatementNode *statementNode) {
 
 void StatementGroupNode::Interpret() {
     for (StatementNode *statement : mStatementNodes) {
-        statement->Interpret();
+        if (statement != NULL) {
+            statement->Interpret();
+        }
+    }
+}
+
+void StatementGroupNode::Code(InstructionsClass &instructions) {
+    for (StatementNode *statement : mStatementNodes) {
+        if (statement != NULL) {
+            statement->Code(instructions);
+        }
+
     }
 }
 
 // MARK: - IfStatement
 
-IfStatementNode::IfStatementNode(ExpressionNode *expressionNode, StatementNode *statementNode)
+IfStatementNode::IfStatementNode(ExpressionNode *expressionNode, StatementNode *ifStatementNode, StatementNode *elseStatementNode)
 : mExpressionNode(expressionNode)
-, mStatementNode(statementNode)
+, mIfStatementNode(ifStatementNode)
+, mElseStatementNode(elseStatementNode)
 {
     MSG("IfStatementNode - Init")
 }
@@ -104,13 +132,35 @@ IfStatementNode::IfStatementNode(ExpressionNode *expressionNode, StatementNode *
 IfStatementNode::~IfStatementNode() {
     MSG("IfStatementNode - Delete Begin")
     delete mExpressionNode;
-    delete mStatementNode;
+    delete mIfStatementNode;
+    if (mElseStatementNode != NULL) {
+        delete mElseStatementNode;
+    }
     MSG("IfStatementNode - Delete End")
 }
 
 void IfStatementNode::Interpret() {
     if (mExpressionNode->Evaluate()) {
-        mStatementNode->Interpret();
+        mIfStatementNode->Interpret();
+    } else if (mElseStatementNode != NULL) {
+        mElseStatementNode->Interpret();
+    }
+}
+
+void IfStatementNode::Code(InstructionsClass &instructions) {
+    mExpressionNode->CodeEvaluate(instructions);
+    unsigned char *jumpAddress      = instructions.SkipIfZeroStack(); // pops a non-zero or a zero from the stack
+    //get address of where the newxt instruction should go
+    unsigned char *address1         = instructions.GetAddress();
+    mIfStatementNode->Code(instructions);
+    unsigned char *address2         = instructions.GetAddress();
+    unsigned char sizeOfCode        = address2 - address1;
+    instructions.SetOffset(jumpAddress, sizeOfCode);
+    if (mElseStatementNode != NULL && mExpressionNode->Evaluate() == 0) {
+        mElseStatementNode->Code(instructions);
+        unsigned char *address4     = instructions.GetAddress();
+        unsigned char sizeOfCode2   = address4 - address2;
+        instructions.SetOffset(jumpAddress, sizeOfCode2);
     }
 }
 
@@ -120,7 +170,7 @@ WhileStatementNode::WhileStatementNode(ExpressionNode *expressionNode, Statement
 : mExpressionNode(expressionNode)
 , mStatementNode(statementNode)
 {
-    MSG("IfStatementNode - Init")
+    MSG("WhileStatementNode - Init")
 }
 
 WhileStatementNode::~WhileStatementNode() {
@@ -130,45 +180,151 @@ WhileStatementNode::~WhileStatementNode() {
     MSG("WhileStatementNode - Delete End")
 }
 
-// TODO: Finish
 void WhileStatementNode::Interpret() {
     while (mExpressionNode->Evaluate()) {
         mStatementNode->Interpret();
     }
 }
 
+void WhileStatementNode::Code(InstructionsClass &instructions) {
+    unsigned char *address0         = instructions.GetAddress();
+    mExpressionNode->CodeEvaluate(instructions);
+    unsigned char *jumpAddress      = instructions.SkipIfZeroStack(); // pops a non-zero or a zero from the stack
+    unsigned char *address1         = instructions.GetAddress();
+    mStatementNode->Code(instructions);
+    unsigned char *jumpAddress2     = instructions.Jump();
+    unsigned char *address2         = instructions.GetAddress();
+    unsigned char sizeOfCode        = address2 - address1;
+    instructions.SetOffset(jumpAddress, sizeOfCode);
+    instructions.SetOffset(jumpAddress2, (address0 - address2));
+}
+
+// MARK: - DoWhileStatement
+
+DoWhileStatementNode::DoWhileStatementNode(ExpressionNode *expressionNode, StatementNode *statementNode)
+: mExpressionNode(expressionNode)
+, mStatementNode(statementNode)
+{
+    MSG("DoWhileStatementNode - Init")
+}
+
+DoWhileStatementNode::~DoWhileStatementNode() {
+    MSG("DoWhileStatementNode - Delete Begin")
+    delete mExpressionNode;
+    delete mStatementNode;
+    MSG("DoWhileStatementNode - Delete End")
+}
+
+void DoWhileStatementNode::Interpret() {
+    do {
+        mStatementNode->Interpret();
+    } while (mExpressionNode->Evaluate());
+}
+
+void DoWhileStatementNode::Code(InstructionsClass &instructions) {
+    mStatementNode->Code(instructions);
+    unsigned char *address1         = instructions.GetAddress();
+    mExpressionNode->CodeEvaluate(instructions);
+    unsigned char *expressionJump   = instructions.SkipIfZeroStack(); // pops a non-zero or a zero from the stack
+    unsigned char *address2         = instructions.GetAddress();
+    mStatementNode->Code(instructions);
+    unsigned char *loopJump         = instructions.Jump();
+    unsigned char *address4         = instructions.GetAddress();
+    instructions.SetOffset(expressionJump, address4 - address2);
+    instructions.SetOffset(loopJump, (address1 - address4));
+}
+
+// MARK: - WhileStatement
+
+RepeatStatementNode::RepeatStatementNode(ExpressionNode *expressionNode, StatementNode *statementNode)
+: mExpressionNode(expressionNode)
+, mStatementNode(statementNode)
+{
+    MSG("DoWhileStatementNode - Init")
+}
+
+RepeatStatementNode::~RepeatStatementNode() {
+    MSG("DoWhileStatementNode - Delete Begin")
+    delete mExpressionNode;
+    delete mStatementNode;
+    MSG("DoWhileStatementNode - Delete End")
+}
+
+void RepeatStatementNode::Interpret() {
+    for (int i = 0;  i < mExpressionNode->Evaluate(); i++) {
+        mStatementNode->Interpret();
+    }
+}
+
+void RepeatStatementNode::Code(InstructionsClass &instructions) {
+    mExpressionNode->CodeEvaluate(instructions);
+    unsigned char *address0         = instructions.GetAddress();
+    instructions.PopPushPush();
+    unsigned char *jumpAddress1     = instructions.SkipIfZeroStack();
+    unsigned char *address1         = instructions.GetAddress();
+    instructions.PushValue(1);
+    instructions.PopPopSubPush();
+    mStatementNode->Code(instructions);
+    unsigned char *jumpAddress2     = instructions.Jump();
+    unsigned char *address2         = instructions.GetAddress();
+    instructions.SetOffset(jumpAddress2, (address0 - address2));
+    instructions.SetOffset(jumpAddress1, (address2 - address1));
+    instructions.Pop();
+}
+
 
 // MARK: - DeclarationStatement
 
-
-DeclarationStatementNode::DeclarationStatementNode(IdentifierNode *identifierNode)
-: mIdentifierNode(identifierNode) {
+DeclarationStatementNode::DeclarationStatementNode(IdentifierNode *identifierNode, ExpressionNode *expressionNode)
+: mIdentifierNode(identifierNode)
+, mExpressionNode(expressionNode) {
     MSG("DeclarationStatementNode - Init")
 }
 
 DeclarationStatementNode::~DeclarationStatementNode() {
     MSG("DeclarationStatementNode - Delete Begin")
     delete mIdentifierNode;
+    if (mExpressionNode != NULL) {
+        delete mExpressionNode;
+    }
     MSG("DeclarationStatementNode - Delete End")
 }
 
 void DeclarationStatementNode::Interpret() {
     mIdentifierNode->DeclareVariable();
+    if (mExpressionNode != NULL) {
+        int value = mExpressionNode->Evaluate();
+        mIdentifierNode->SetValue(value);
+    }
+}
+
+void DeclarationStatementNode::Code(InstructionsClass &instructions) {
+    mIdentifierNode->DeclareVariable();
+    if (mExpressionNode != NULL) {
+        mExpressionNode->CodeEvaluate(instructions);
+        int index = mIdentifierNode->GetIndex();
+        instructions.PopAndStore(index);
+    }
+}
+
+AssignmentNode::AssignmentNode(IdentifierNode *identifierNode, ExpressionNode *expressionNode)
+: mIdentifierNode(identifierNode)
+, mExpressionNode(expressionNode) {
+
+}
+
+AssignmentNode::~AssignmentNode() {
+    MSG("AssignmentNode - Delete Begin")
+    delete mIdentifierNode;
+    delete mExpressionNode;
+    MSG("AssignmentNode - Delete End")
 }
 
 // MARK: - AssignmentStatement
 
 AssignmentStatementNode::AssignmentStatementNode(IdentifierNode *identifierNode, ExpressionNode *expressionNode)
-: mIdentifierNode(identifierNode)
-, mExpressionNode(expressionNode) {
+: AssignmentNode(identifierNode, expressionNode) {
     MSG("AssignmentStatementNode - Init")
-}
-
-AssignmentStatementNode::~AssignmentStatementNode() {
-    MSG("AssignmentStatementNode - Delete Begin")
-    delete mIdentifierNode;
-    delete mExpressionNode;
-    MSG("AssignmentStatementNode - Delete End")
 }
 
 void AssignmentStatementNode::Interpret() {
@@ -176,20 +332,18 @@ void AssignmentStatementNode::Interpret() {
     mIdentifierNode->SetValue(value);
 }
 
+void AssignmentStatementNode::Code(InstructionsClass &instructions) {
+    mExpressionNode->CodeEvaluate(instructions);
+    int index = mIdentifierNode->GetIndex();
+    instructions.PopAndStore(index);
+}
+
 // MARK: - PlusEqualStatement
 
 PlusEqualStatementNode::PlusEqualStatementNode(IdentifierNode *identifierNode, ExpressionNode *expressionNode)
-: mIdentifierNode(identifierNode)
-, mExpressionNode(expressionNode) {
+: AssignmentNode(identifierNode, expressionNode) {
     MSG("PlusEqualStatementNode - Init")
 
-}
-
-PlusEqualStatementNode::~PlusEqualStatementNode() {
-    MSG("PlusEqualStatementNode - Delete Begin")
-    delete mIdentifierNode;
-    delete mExpressionNode;
-    MSG("PlusEqualStatementNode - Delete End")
 }
 
 void PlusEqualStatementNode::Interpret() {
@@ -198,20 +352,19 @@ void PlusEqualStatementNode::Interpret() {
     mIdentifierNode->SetValue(currentValue + value);
 }
 
+void PlusEqualStatementNode::Code(InstructionsClass &instructions) {
+    mExpressionNode->CodeEvaluate(instructions);
+    mIdentifierNode->CodeEvaluate(instructions);
+    instructions.PopPopAddPush();
+    instructions.PopAndStore(mIdentifierNode->GetIndex());
+}
+
 // MARK: - MinusEqualStatement
 
 MinusEqualStatementNode::MinusEqualStatementNode(IdentifierNode *identifierNode, ExpressionNode *expressionNode)
-: mIdentifierNode(identifierNode)
-, mExpressionNode(expressionNode) {
+: AssignmentNode(identifierNode, expressionNode) {
     MSG("MinusEqualStatementNode - Init")
 
-}
-
-MinusEqualStatementNode::~MinusEqualStatementNode() {
-    MSG("MinusEqualStatementNode - Delete Begin")
-    delete mIdentifierNode;
-    delete mExpressionNode;
-    MSG("MinusEqualStatementNode - Delete End")
 }
 
 void MinusEqualStatementNode::Interpret() {
@@ -220,22 +373,18 @@ void MinusEqualStatementNode::Interpret() {
     mIdentifierNode->SetValue(currentValue - value);
 }
 
+void MinusEqualStatementNode::Code(InstructionsClass &instructions) {
+    mExpressionNode->CodeEvaluate(instructions);
+    mIdentifierNode->CodeEvaluate(instructions);
+    instructions.PopPopSubPush();
+    instructions.PopAndStore(mIdentifierNode->GetIndex());
+}
 
 // MARK: - TimesEqualStatement
 
 TimesEqualStatementNode::TimesEqualStatementNode(IdentifierNode *identifierNode, ExpressionNode *expressionNode)
-: mIdentifierNode(identifierNode)
-, mExpressionNode(expressionNode) {
+: AssignmentNode(identifierNode, expressionNode) {
     MSG("TimesEqualStatementNode - Init")
-    int value = mExpressionNode->Evaluate();
-    mIdentifierNode->SetValue(value);
-}
-
-TimesEqualStatementNode::~TimesEqualStatementNode() {
-    MSG("TimesEqualStatementNode - Delete Begin")
-    delete mIdentifierNode;
-    delete mExpressionNode;
-    MSG("TimesEqualStatementNode - Delete End")
 }
 
 void TimesEqualStatementNode::Interpret() {
@@ -244,20 +393,18 @@ void TimesEqualStatementNode::Interpret() {
     mIdentifierNode->SetValue(currentValue * value);
 }
 
+void TimesEqualStatementNode::Code(InstructionsClass &instructions) {
+    mExpressionNode->CodeEvaluate(instructions);
+    mIdentifierNode->CodeEvaluate(instructions);
+    instructions.PopPopMulPush();
+    instructions.PopAndStore(mIdentifierNode->GetIndex());
+}
+
 // MARK: - DivideEqualStatement
 
 DivideEqualStatementNode::DivideEqualStatementNode(IdentifierNode *identifierNode, ExpressionNode *expressionNode)
-: mIdentifierNode(identifierNode)
-, mExpressionNode(expressionNode) {
+: AssignmentNode(identifierNode, expressionNode) {
     MSG("DivideEqualStatementNode - Init")
-
-}
-
-DivideEqualStatementNode::~DivideEqualStatementNode() {
-    MSG("DivideEqualStatementNode - Delete Begin")
-    delete mIdentifierNode;
-    delete mExpressionNode;
-    MSG("DivideEqualStatementNode - Delete End")
 }
 
 void DivideEqualStatementNode::Interpret() {
@@ -266,6 +413,12 @@ void DivideEqualStatementNode::Interpret() {
     mIdentifierNode->SetValue(currentValue / value);
 }
 
+void DivideEqualStatementNode::Code(InstructionsClass &instructions) {
+    mExpressionNode->CodeEvaluate(instructions);
+    mIdentifierNode->CodeEvaluate(instructions);
+    instructions.PopPopDivPush();
+    instructions.PopAndStore(mIdentifierNode->GetIndex());
+}
 
 // MARK: - Expression
 
@@ -273,23 +426,45 @@ ExpressionNode::~ExpressionNode() {
 
 }
 
-
 // MARK: - CoutStatement
 
-CoutStatementNode::CoutStatementNode(ExpressionNode *expressionNode)
-: mExpressionNode(expressionNode) {
+CoutStatementNode::CoutStatementNode() {
     MSG("CoutStatementNode - Init")
 }
 
 CoutStatementNode::~CoutStatementNode() {
     MSG("CoutStatementNode - Delete Begin")
-    delete mExpressionNode;
+    for (ExpressionNode *expressionNode : mExpressionNodes) {
+        if (expressionNode != NULL) {
+            delete expressionNode;
+        }
+    }
     MSG("CoutStatementNode - Delete End")
 }
 
+void CoutStatementNode::AddStatement(ExpressionNode *expressionNode) {
+    mExpressionNodes.push_back(expressionNode);
+}
+
 void CoutStatementNode::Interpret() {
-    int value = mExpressionNode->Evaluate();
-    cout << value << endl;
+    for (ExpressionNode *expressionNode : mExpressionNodes) {
+        if (expressionNode == NULL) {
+            cout << endl;
+        } else {
+            cout << expressionNode->Evaluate() << " ";
+        }
+    }
+}
+
+void CoutStatementNode::Code(InstructionsClass &instructions) {
+    for (ExpressionNode *expressionNode : mExpressionNodes) {
+        if (expressionNode == NULL) {
+            instructions.WriteEndl();
+        } else {
+            expressionNode->CodeEvaluate(instructions);
+            instructions.PopAndWrite();
+        }
+    }
 }
 
 // MARK: - Integer
@@ -301,6 +476,10 @@ IntegerNode::IntegerNode(int integer)
 
 int IntegerNode::Evaluate() {
     return mInteger;
+}
+
+void IntegerNode::CodeEvaluate(InstructionsClass &instructions) {
+    instructions.PushValue(mInteger);
 }
 
 // MARK: - Identifier
@@ -316,19 +495,45 @@ IdentifierNode::~IdentifierNode() {
 }
 
 void IdentifierNode::DeclareVariable() {
-    mSymbolTable->AddEntry(mLabel);
+    try {
+        mSymbolTable->AddEntry(mLabel);
+    } catch (...) {
+        cerr << "Invalid redeclaration of variable name: " << mLabel << endl;
+        exit(1);
+    }
 }
 
 void IdentifierNode::SetValue(int value) {
-    mSymbolTable->SetValue(mLabel, value);
+    try {
+        mSymbolTable->SetValue(mLabel, value);
+    } catch (...) {
+        cerr << "Variable needs to be initialized first: " << mLabel << endl;
+        exit(1);
+    }
 }
 
 int IdentifierNode::GetIndex() {
-    return mSymbolTable->GetIndex(mLabel);
+    int index = mSymbolTable->GetIndex(mLabel);
+    if (index < 0) {
+        cerr << "Unknown variable: " << mLabel << endl;
+        exit(1);
+    }
+    return index;
 }
 
 int IdentifierNode::Evaluate() {
-    return mSymbolTable->GetValue(mLabel);
+    int value;
+    try {
+        value = mSymbolTable->GetValue(mLabel);
+    } catch (...) {
+        cerr << "Variable name used before initialization: " << mLabel << endl;
+        exit(1);
+    }
+    return value;
+}
+
+void IdentifierNode::CodeEvaluate(InstructionsClass &instructions) {
+    instructions.PushVariable(GetIndex());
 }
 
 // MARK: - BinaryOperator
@@ -357,6 +562,12 @@ int OrNode::Evaluate() {
     return mLeftSide->Evaluate() || mRightSide->Evaluate();
 }
 
+void OrNode::CodeEvaluate(InstructionsClass &instructions) {
+    mLeftSide->CodeEvaluate(instructions);
+    mRightSide->CodeEvaluate(instructions);
+    instructions.PopPopOrPush();
+}
+
 // MARK: - And
 
 AndNode::AndNode(ExpressionNode *leftSide, ExpressionNode *rightSide)
@@ -366,6 +577,12 @@ AndNode::AndNode(ExpressionNode *leftSide, ExpressionNode *rightSide)
 
 int AndNode::Evaluate() {
     return mLeftSide->Evaluate() && mRightSide->Evaluate();
+}
+
+void AndNode::CodeEvaluate(InstructionsClass &instructions) {
+    mLeftSide->CodeEvaluate(instructions);
+    mRightSide->CodeEvaluate(instructions);
+    instructions.PopPopAndPush();
 }
 
 // MARK: - Plus
@@ -379,6 +596,12 @@ int PlusNode::Evaluate() {
     return mLeftSide->Evaluate() + mRightSide->Evaluate();
 }
 
+void PlusNode::CodeEvaluate(InstructionsClass &instructions) {
+    mLeftSide->CodeEvaluate(instructions);
+    mRightSide->CodeEvaluate(instructions);
+    instructions.PopPopAddPush();
+}
+
 // MARK: - Minus
 
 MinusNode::MinusNode(ExpressionNode *leftSide, ExpressionNode *rightSide)
@@ -388,6 +611,12 @@ MinusNode::MinusNode(ExpressionNode *leftSide, ExpressionNode *rightSide)
 
 int MinusNode::Evaluate() {
     return mLeftSide->Evaluate() + mRightSide->Evaluate();
+}
+
+void MinusNode::CodeEvaluate(InstructionsClass &instructions) {
+    mLeftSide->CodeEvaluate(instructions);
+    mRightSide->CodeEvaluate(instructions);
+    instructions.PopPopSubPush();
 }
 
 // MARK: - Times
@@ -401,6 +630,12 @@ int TimesNode::Evaluate() {
     return mLeftSide->Evaluate() + mRightSide->Evaluate();
 }
 
+void TimesNode::CodeEvaluate(InstructionsClass &instructions) {
+    mLeftSide->CodeEvaluate(instructions);
+    mRightSide->CodeEvaluate(instructions);
+    instructions.PopPopMulPush();
+}
+
 // MARK: - Divide
 
 DivideNode::DivideNode(ExpressionNode *leftSide, ExpressionNode *rightSide)
@@ -412,6 +647,29 @@ int DivideNode::Evaluate() {
     return mLeftSide->Evaluate() + mRightSide->Evaluate();
 }
 
+void DivideNode::CodeEvaluate(InstructionsClass &instructions) {
+    mLeftSide->CodeEvaluate(instructions);
+    mRightSide->CodeEvaluate(instructions);
+    instructions.PopPopDivPush();
+}
+
+// MARK: - Modulus
+
+ModulusNode::ModulusNode(ExpressionNode *leftSide, ExpressionNode *rightSide)
+: BinaryOperatorNode(leftSide, rightSide) {
+    MSG("PlusNode - Init")
+}
+
+int ModulusNode::Evaluate() {
+    return mLeftSide->Evaluate() % mRightSide->Evaluate();
+}
+
+void ModulusNode::CodeEvaluate(InstructionsClass &instructions) {
+    mLeftSide->CodeEvaluate(instructions);
+    mRightSide->CodeEvaluate(instructions);
+    instructions.PopPopModPush();
+}
+
 // MARK: - Less
 
 LessNode::LessNode(ExpressionNode *leftSide, ExpressionNode *rightSide)
@@ -420,7 +678,13 @@ LessNode::LessNode(ExpressionNode *leftSide, ExpressionNode *rightSide)
 }
 
 int LessNode::Evaluate() {
-    return mLeftSide->Evaluate() + mRightSide->Evaluate();
+    return mLeftSide->Evaluate() < mRightSide->Evaluate();
+}
+
+void LessNode::CodeEvaluate(InstructionsClass &instructions) {
+    mLeftSide->CodeEvaluate(instructions);
+    mRightSide->CodeEvaluate(instructions);
+    instructions.PopPopLessPush();
 }
 
 // MARK: - LessEqual
@@ -431,7 +695,13 @@ LessEqualNode::LessEqualNode(ExpressionNode *leftSide, ExpressionNode *rightSide
 }
 
 int LessEqualNode::Evaluate() {
-    return mLeftSide->Evaluate() + mRightSide->Evaluate();
+    return mLeftSide->Evaluate() <= mRightSide->Evaluate();
+}
+
+void LessEqualNode::CodeEvaluate(InstructionsClass &instructions) {
+    mLeftSide->CodeEvaluate(instructions);
+    mRightSide->CodeEvaluate(instructions);
+    instructions.PopPopLessEqualPush();
 }
 
 // MARK: - Greater
@@ -442,7 +712,13 @@ GreaterNode::GreaterNode(ExpressionNode *leftSide, ExpressionNode *rightSide)
 }
 
 int GreaterNode::Evaluate() {
-    return mLeftSide->Evaluate() + mRightSide->Evaluate();
+    return mLeftSide->Evaluate() > mRightSide->Evaluate();
+}
+
+void GreaterNode::CodeEvaluate(InstructionsClass &instructions) {
+    mLeftSide->CodeEvaluate(instructions);
+    mRightSide->CodeEvaluate(instructions);
+    instructions.PopPopGreaterPush();
 }
 
 // MARK: - GreaterEqual
@@ -453,7 +729,13 @@ GreaterEqualNode::GreaterEqualNode(ExpressionNode *leftSide, ExpressionNode *rig
 }
 
 int GreaterEqualNode::Evaluate() {
-    return mLeftSide->Evaluate() + mRightSide->Evaluate();
+    return mLeftSide->Evaluate() >= mRightSide->Evaluate();
+}
+
+void GreaterEqualNode::CodeEvaluate(InstructionsClass &instructions) {
+    mLeftSide->CodeEvaluate(instructions);
+    mRightSide->CodeEvaluate(instructions);
+    instructions.PopPopGreaterEqualPush();
 }
 
 // MARK: - Equal
@@ -464,7 +746,13 @@ EqualNode::EqualNode(ExpressionNode *leftSide, ExpressionNode *rightSide)
 }
 
 int EqualNode::Evaluate() {
-    return mLeftSide->Evaluate() + mRightSide->Evaluate();
+    return mLeftSide->Evaluate() == mRightSide->Evaluate();
+}
+
+void EqualNode::CodeEvaluate(InstructionsClass &instructions) {
+    mLeftSide->CodeEvaluate(instructions);
+    mRightSide->CodeEvaluate(instructions);
+    instructions.PopPopEqualPush();
 }
 
 // MARK: - NotEqual
@@ -475,7 +763,13 @@ NotEqualNode::NotEqualNode(ExpressionNode *leftSide, ExpressionNode *rightSide)
 }
 
 int NotEqualNode::Evaluate() {
-    return mLeftSide->Evaluate() + mRightSide->Evaluate();
+    return mLeftSide->Evaluate() != mRightSide->Evaluate();
+}
+
+void NotEqualNode::CodeEvaluate(InstructionsClass &instructions) {
+    mLeftSide->CodeEvaluate(instructions);
+    mRightSide->CodeEvaluate(instructions);
+    instructions.PopPopNotEqualPush();
 }
 
 // MARK: - UnaryOperator
@@ -502,6 +796,12 @@ int NotNode::Evaluate() {
     return !mExpression->Evaluate();
 }
 
+// TODO: Swap boolean
+void NotNode::CodeEvaluate(InstructionsClass &instructions) {
+    mExpression->CodeEvaluate(instructions);
+//    instructions.PopNotPush();
+}
+
 // MARK: - Not
 
 NegativeNode::NegativeNode(ExpressionNode *expression)
@@ -511,6 +811,12 @@ NegativeNode::NegativeNode(ExpressionNode *expression)
 
 int NegativeNode::Evaluate() {
     return -mExpression->Evaluate();
+}
+
+// TODO: Finish negate
+void NegativeNode::CodeEvaluate(InstructionsClass &instructions) {
+    mExpression->CodeEvaluate(instructions);
+//    instructions.PopNegatePush();
 }
 
 

@@ -37,10 +37,18 @@ void TokenClass::CheckReserved() {
             mType = INT_TOKEN;
         } else if (mLexeme == "cout") {
             mType = COUT_TOKEN;
+        } else if (mLexeme == "endl") {
+            mType = ENDL_TOKEN;
         } else if (mLexeme == "if") {
             mType = IF_TOKEN;
+        } else if (mLexeme == "else") {
+            mType = ELSE_TOKEN;
         } else if (mLexeme == "while") {
             mType = WHILE_TOKEN;
+        } else if (mLexeme == "do") {
+            mType = DO_TOKEN;
+        } else if (mLexeme == "repeat") {
+            mType = REPEAT_TOKEN;
         } else if (mLexeme == "begin") {
             mType = LCURLY_TOKEN;
         } else if (mLexeme == "end") {

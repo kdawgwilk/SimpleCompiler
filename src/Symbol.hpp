@@ -18,6 +18,8 @@ class SymbolTableClass {
 
     vector<Variable> mVariables;
     vector<int> mScope;
+    FRIEND_TEST(SymbolTableClassTests, PushScope);
+    FRIEND_TEST(SymbolTableClassTests, PopScope);
 
 public:
     SymbolTableClass();
@@ -25,6 +27,7 @@ public:
 
     // returns true if <s> is already in the symbol table.
     bool Exists(string s);
+    bool ExistsInCurrentScope(string s);
 
     // adds <s> to the symbol table,
     // or quits if it was already there

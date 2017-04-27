@@ -17,7 +17,7 @@ TEST(TokenClassTests, output_stream_operator) {
     stringstream os;
     os << voidToken;
 
-    EXPECT_EQ(os.str(), "Token Type:   0\nToken Name:   VOID\nToken Lexeme: `void`\n");
+    EXPECT_EQ(os.str(), "Token Type:   43\nToken Name:   VOID\nToken Lexeme: `void`\n");
 }
 
 TEST(TokenClassTests, Init) {
@@ -71,16 +71,40 @@ TEST(TokenClassTests, CheckReserved_Cout) {
     EXPECT_EQ(token.GetTokenType(), COUT_TOKEN);
 }
 
+TEST(TokenClassTests, CheckReserved_Endl) {
+    TokenClass token(IDENTIFIER_TOKEN, "endl");
+    token.CheckReserved();
+    EXPECT_EQ(token.GetTokenType(), ENDL_TOKEN);
+}
+
 TEST(TokenClassTests, CheckReserved_If) {
     TokenClass token(IDENTIFIER_TOKEN, "if");
     token.CheckReserved();
     EXPECT_EQ(token.GetTokenType(), IF_TOKEN);
 }
 
+TEST(TokenClassTests, CheckReserved_Else) {
+    TokenClass token(IDENTIFIER_TOKEN, "else");
+    token.CheckReserved();
+    EXPECT_EQ(token.GetTokenType(), ELSE_TOKEN);
+}
+
 TEST(TokenClassTests, CheckReserved_While) {
     TokenClass token(IDENTIFIER_TOKEN, "while");
     token.CheckReserved();
     EXPECT_EQ(token.GetTokenType(), WHILE_TOKEN);
+}
+
+TEST(TokenClassTests, CheckReserved_Do) {
+    TokenClass token(IDENTIFIER_TOKEN, "do");
+    token.CheckReserved();
+    EXPECT_EQ(token.GetTokenType(), DO_TOKEN);
+}
+
+TEST(TokenClassTests, CheckReserved_Repeat) {
+    TokenClass token(IDENTIFIER_TOKEN, "repeat");
+    token.CheckReserved();
+    EXPECT_EQ(token.GetTokenType(), REPEAT_TOKEN);
 }
 
 // Is this shortcut okay?

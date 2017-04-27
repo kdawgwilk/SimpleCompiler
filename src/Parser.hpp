@@ -41,9 +41,12 @@ class ParserClass {
     FRIEND_TEST(ParserClassTests, IfStatement);
     virtual WhileStatementNode *WhileStatement();
     FRIEND_TEST(ParserClassTests, WhileStatement);
+    virtual DoWhileStatementNode *DoWhileStatement();
+    virtual RepeatStatementNode *RepeatStatement();
+
     virtual DeclarationStatementNode *DeclarationStatement();
     FRIEND_TEST(ParserClassTests, DeclarationStatement);
-    virtual AssignmentStatementNode *AssignmentStatement();
+    virtual AssignmentNode *AssignmentStatement();
     FRIEND_TEST(ParserClassTests, AssignmentStatement);
     virtual CoutStatementNode *CoutStatement();
     FRIEND_TEST(ParserClassTests, CoutStatement);

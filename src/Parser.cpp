@@ -20,9 +20,10 @@ ParserClass::~ParserClass() {
 }
 
 TokenClass ParserClass::Match(TokenType expectedType) {
-    TokenClass currentToken = mScanner->GetNextToken();
+    auto currentToken = mScanner->GetNextToken();
     if(currentToken.GetTokenType() != expectedType) {
 //        cerr << "Error in ParserClass::Match. " << endl;
+        cerr << "ERROR: " << mScanner->GetFilename() << "[" << mScanner->GetLineNumber() << "," << mScanner->GetColumnNumber() << "]: ";
         cerr << "Expected token type " << TokenClass::GetTypeString(expectedType) << ", but got type " << currentToken.GetTokenTypeName() << endl;
         exit(1);
     }
@@ -30,9 +31,9 @@ TokenClass ParserClass::Match(TokenType expectedType) {
     return currentToken; // the one we just processed
 }
 StartNode *ParserClass::Start() {
-    ProgramNode *programNode = Program();
+    auto programNode = Program();
     Match(ENDFILE_TOKEN);
-    StartNode *startNode = new StartNode(programNode);
+    auto startNode = new StartNode(programNode);
     return startNode;
 }
 
@@ -41,24 +42,24 @@ ProgramNode *ParserClass::Program() {
     Match(MAIN_TOKEN);
     Match(LPAREN_TOKEN);
     Match(RPAREN_TOKEN);
-    BlockNode *blockNode = Block();
-    ProgramNode *programNode = new ProgramNode(blockNode);
+    auto blockNode = Block();
+    auto programNode = new ProgramNode(blockNode);
     return programNode;
 }
 
 BlockNode *ParserClass::Block() {
     Match(LCURLY_TOKEN);
-    StatementGroupNode *statementGroup = StatementGroup();
+    auto statementGroup = StatementGroup();
     Match(RCURLY_TOKEN);
-    BlockNode *blockNode = new BlockNode(mSymbolTable, statementGroup);
+    auto blockNode = new BlockNode(mSymbolTable, statementGroup);
     return blockNode;
 }
 
 StatementGroupNode *ParserClass::StatementGroup() {
-    StatementGroupNode *statementGroupNode = new StatementGroupNode();
+    auto statementGroupNode = new StatementGroupNode();
 
     while (true) {
-        StatementNode *statement = Statement();
+        auto statement = Statement();
         if (!statement) { break; }
         statementGroupNode->AddStatement(statement);
     }
@@ -66,14 +67,18 @@ StatementGroupNode *ParserClass::StatementGroup() {
 }
 
 StatementNode *ParserClass::Statement() {
-    TokenType tokenType = mScanner->PeekNextToken().GetTokenType();
-    switch (tokenType) {
+    auto token = mScanner->PeekNextToken().GetTokenType();
+    switch (token) {
         case INT_TOKEN:
             return DeclarationStatement();
         case IF_TOKEN:
             return IfStatement();
         case WHILE_TOKEN:
             return WhileStatement();
+        case DO_TOKEN:
+            return DoWhileStatement();
+        case REPEAT_TOKEN:
+            return RepeatStatement();
         case IDENTIFIER_TOKEN:
             return AssignmentStatement();
         case COUT_TOKEN:
@@ -89,10 +94,16 @@ StatementNode *ParserClass::Statement() {
 IfStatementNode *ParserClass::IfStatement() {
     Match(IF_TOKEN);
     Match(LPAREN_TOKEN);
-    ExpressionNode *expressionNode = Expression();
+    auto expressionNode = Expression();
     Match(RPAREN_TOKEN);
-    StatementNode *statementNode = Statement();
-    IfStatementNode *ifStatementNode = new IfStatementNode(expressionNode, statementNode);
+    auto statementNode = Statement();
+    StatementNode *elseStatementNode = NULL;
+    auto token = mScanner->PeekNextToken().GetTokenType();
+    if (token == ELSE_TOKEN) {
+        Match(ELSE_TOKEN);
+        elseStatementNode = Statement();
+    }
+    auto ifStatementNode = new IfStatementNode(expressionNode, statementNode, elseStatementNode);
     return ifStatementNode;
 }
 
@@ -100,41 +111,115 @@ IfStatementNode *ParserClass::IfStatement() {
 WhileStatementNode *ParserClass::WhileStatement() {
     Match(WHILE_TOKEN);
     Match(LPAREN_TOKEN);
-    ExpressionNode *expressionNode = Expression();
+    auto expressionNode = Expression();
     Match(RPAREN_TOKEN);
-    StatementNode *statementNode = Statement();
-    WhileStatementNode *whileStatementNode = new WhileStatementNode(expressionNode, statementNode);
+    auto statementNode = Statement();
+    auto whileStatementNode = new WhileStatementNode(expressionNode, statementNode);
     return whileStatementNode;
 }
 
+DoWhileStatementNode *ParserClass::DoWhileStatement() {
+    Match(DO_TOKEN);
+    auto statementNode = Statement();
+    Match(WHILE_TOKEN);
+    Match(LPAREN_TOKEN);
+    auto expressionNode = Expression();
+    Match(RPAREN_TOKEN);
+    Match(SEMICOLON_TOKEN);
+    auto doWhileStatementNode = new DoWhileStatementNode(expressionNode, statementNode);
+    return doWhileStatementNode;
+}
+
+RepeatStatementNode *ParserClass::RepeatStatement() {
+    Match(REPEAT_TOKEN);
+    Match(LPAREN_TOKEN);
+    auto expressionNode = Expression();
+    Match(RPAREN_TOKEN);
+    auto statementNode = Statement();
+    auto repeatStatementNode = new RepeatStatementNode(expressionNode, statementNode);
+    return repeatStatementNode;
+}
 
 DeclarationStatementNode *ParserClass::DeclarationStatement() {
     Match(INT_TOKEN);
-    IdentifierNode *identifierNode = Identifier();
+    auto identifierNode = Identifier();
+    ExpressionNode *expressionNode = NULL;
+    auto token = mScanner->PeekNextToken().GetTokenType();
+    if (token == ASSIGNMENT_TOKEN) {
+        Match(token);
+        expressionNode = Expression();
+    }
     Match(SEMICOLON_TOKEN);
-    DeclarationStatementNode *declarationStatementNode = new DeclarationStatementNode(identifierNode);
+    auto declarationStatementNode = new DeclarationStatementNode(identifierNode, expressionNode);
     return declarationStatementNode;
 }
 
 AssignmentStatementNode *ParserClass::AssignmentStatement() {
-    IdentifierNode *identifierNode = Identifier();
-    Match(ASSIGNMENT_TOKEN);
-    ExpressionNode *expressionNode = Expression();
-    Match(SEMICOLON_TOKEN);
-    AssignmentStatementNode *assignmentStatementNode = new AssignmentStatementNode(identifierNode, expressionNode);
-    return assignmentStatementNode;
+    auto identifierNode = Identifier();
+    auto token = mScanner->PeekNextToken().GetTokenType();
+    ExpressionNode *expressionNode;
+    switch (token) {
+        case PLUS_EQUAL_TOKEN:
+            Match(token);
+            expressionNode = Expression();
+            Match(SEMICOLON_TOKEN);
+            return new PlusEqualStatementNode(identifierNode, expressionNode);
+        case MINUS_EQUAL_TOKEN:
+            Match(token);
+            expressionNode = Expression();
+            Match(SEMICOLON_TOKEN);
+            return new MinusEqualStatementNode(identifierNode, expressionNode);
+        case TIMES_EQUAL_TOKEN:
+            Match(token);
+            expressionNode = Expression();
+            Match(SEMICOLON_TOKEN);
+            return new TimesEqualStatementNode(identifierNode, expressionNode);
+        case DIVIDE_EQUAL_TOKEN:
+            Match(token);
+            expressionNode = Expression();
+            Match(SEMICOLON_TOKEN);
+            return new DivideEqualStatementNode(identifierNode, expressionNode);
+        case INCREMENT_TOKEN:
+            Match(token);
+            expressionNode = new IntegerNode(1);
+            Match(SEMICOLON_TOKEN);
+            return new PlusEqualStatementNode(identifierNode, expressionNode);
+        case DECREMENT_TOKEN:
+            Match(token);
+            expressionNode = new IntegerNode(1);
+            Match(SEMICOLON_TOKEN);
+            return new MinusEqualStatementNode(identifierNode, expressionNode);
+        default:
+            Match(ASSIGNMENT_TOKEN);
+            expressionNode = Expression();
+            Match(SEMICOLON_TOKEN);
+            return new AssignmentStatementNode(identifierNode, expressionNode);
+    }
 }
 
 CoutStatementNode *ParserClass::CoutStatement() {
     Match(COUT_TOKEN);
-    Match(INSERTION_TOKEN);
+    auto coutStatementNode = new CoutStatementNode();
+    while (true) {
+        Match(INSERTION_TOKEN);
+        auto token = mScanner->PeekNextToken().GetTokenType();
+        if (token == ENDL_TOKEN) {
+            Match(ENDL_TOKEN);
+            coutStatementNode->AddStatement(NULL);
+        }
+        token = mScanner->PeekNextToken().GetTokenType();
+        if (token == INSERTION_TOKEN) {
+            continue;
+        } else if (token == SEMICOLON_TOKEN) {
+            Match(SEMICOLON_TOKEN);
+            return coutStatementNode;
+        }
 
-    ExpressionNode *expressionNode = Expression();
-//    Match(INSERTION_TOKEN);
-//    Match(ENDLINE_TOKEN);
-    Match(SEMICOLON_TOKEN);
-    CoutStatementNode *coutStatementNode = new CoutStatementNode(expressionNode);
-    return coutStatementNode;
+        auto expressionNode = Expression();
+        coutStatementNode->AddStatement(expressionNode);
+    }
+    cerr << "Unexpected end to cout statement" << endl;
+    exit(1);
 }
 
 ExpressionNode *ParserClass::Expression() {
@@ -143,8 +228,8 @@ ExpressionNode *ParserClass::Expression() {
 
 // TODO: Test me
 ExpressionNode *ParserClass::Or() {
-    ExpressionNode *current = And();
-    TokenType tokenType = mScanner->PeekNextToken().GetTokenType();
+    auto current = And();
+    auto tokenType = mScanner->PeekNextToken().GetTokenType();
     if (tokenType == OR_TOKEN) {
         Match(tokenType);
 
@@ -155,8 +240,8 @@ ExpressionNode *ParserClass::Or() {
 
 // TODO: Test me
 ExpressionNode *ParserClass::And() {
-    ExpressionNode *current = Relationals();
-    TokenType tokenType = mScanner->PeekNextToken().GetTokenType();
+    auto current = Relationals();
+    auto tokenType = mScanner->PeekNextToken().GetTokenType();
     if (tokenType == AND_TOKEN) {
         Match(tokenType);
 
@@ -166,8 +251,8 @@ ExpressionNode *ParserClass::And() {
 }
 
 ExpressionNode *ParserClass::Relationals() {
-    ExpressionNode *current = PlusMinus();
-    TokenType tokenType = mScanner->PeekNextToken().GetTokenType();
+    auto current = PlusMinus();
+    auto tokenType = mScanner->PeekNextToken().GetTokenType();
     if (tokenType == LESS_THAN_TOKEN ||
         tokenType == LESS_THAN_OR_EQUAL_TOKEN ||
         tokenType == GREATER_THAN_TOKEN ||
@@ -204,9 +289,9 @@ ExpressionNode *ParserClass::Relationals() {
 }
 
 ExpressionNode *ParserClass::PlusMinus() {
-    ExpressionNode *current = TimesDivide();
+    auto current = TimesDivide();
     while (true) {
-        TokenType token = mScanner->PeekNextToken().GetTokenType();
+        auto token = mScanner->PeekNextToken().GetTokenType();
         switch (token) {
             case PLUS_TOKEN:
                 Match(token);
@@ -224,9 +309,9 @@ ExpressionNode *ParserClass::PlusMinus() {
 }
 
 ExpressionNode *ParserClass::TimesDivide() {
-    ExpressionNode *current = Unaries();
+    auto current = Unaries();
     while (true) {
-        TokenType token = mScanner->PeekNextToken().GetTokenType();
+        auto token = mScanner->PeekNextToken().GetTokenType();
         switch (token) {
             case TIMES_TOKEN:
                 Match(token);
@@ -235,6 +320,10 @@ ExpressionNode *ParserClass::TimesDivide() {
             case DIVIDE_TOKEN:
                 Match(token);
                 current = new DivideNode(current, Unaries());
+                break;
+            case MODULO_TOKEN:
+                Match(token);
+                current = new ModulusNode(current, Unaries());
                 break;
             default:
                 return current;
@@ -245,9 +334,9 @@ ExpressionNode *ParserClass::TimesDivide() {
 
 // TODO: Test this code
 ExpressionNode *ParserClass::Unaries() {
-    ExpressionNode *current = Factor();
+    auto current = Factor();
     while (true) {
-        TokenType token = mScanner->PeekNextToken().GetTokenType();
+        auto token = mScanner->PeekNextToken().GetTokenType();
         switch (token) {
             case NOT_TOKEN:
                 Match(token);
@@ -273,7 +362,8 @@ ExpressionNode *ParserClass::Unaries() {
  If the next token type is not an IDENTIFIER or INTEGER or LPAREN, the code should print an error message and quit.
  */
 ExpressionNode *ParserClass::Factor() {
-    TokenType tokenType = mScanner->PeekNextToken().GetTokenType();
+    auto token = mScanner->PeekNextToken();
+    auto tokenType = token.GetTokenType();
     switch (tokenType) {
         case IDENTIFIER_TOKEN:
             return Identifier();
@@ -283,27 +373,27 @@ ExpressionNode *ParserClass::Factor() {
             break;
         case LPAREN_TOKEN: {
             Match(LPAREN_TOKEN);
-            ExpressionNode *expressionNode = Expression();
+            auto expressionNode = Expression();
             Match(RPAREN_TOKEN);
             return expressionNode;
             break;
         }
         default:
-            cerr << "Unexpected token: " << tokenType << endl;
+            cerr << "Unexpected token: \n" << token << endl;
             exit(1);
             break;
     }
 }
 
 IdentifierNode *ParserClass::Identifier() {
-    TokenClass token = Match(IDENTIFIER_TOKEN);
-    IdentifierNode *identifierNode = new IdentifierNode(token.GetLexeme(), mSymbolTable);
+    auto token = Match(IDENTIFIER_TOKEN);
+    auto identifierNode = new IdentifierNode(token.GetLexeme(), mSymbolTable);
     return identifierNode;
 }
 
 IntegerNode *ParserClass::Integer() {
-    TokenClass token = Match(INTEGER_TOKEN);
-    IntegerNode *integerNode = new IntegerNode(atoi(token.GetLexeme().c_str()));
+    auto token = Match(INTEGER_TOKEN);
+    auto integerNode = new IntegerNode(atoi(token.GetLexeme().c_str()));
     return integerNode;
 }
 

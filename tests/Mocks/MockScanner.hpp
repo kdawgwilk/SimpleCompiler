@@ -13,7 +13,7 @@
 
 class MockScannerClass: public ScannerClass {
 public:
-    MockScannerClass(string filename): ScannerClass(filename) {}
+    MockScannerClass(string filename = "", InterfaceInputStreamer *inputStream = new FileStringStreamer(new std::istringstream)): ScannerClass(filename, inputStream) {}
 
     MOCK_METHOD0(GetNextToken, TokenClass());
     MOCK_METHOD0(PeekNextToken, TokenClass());

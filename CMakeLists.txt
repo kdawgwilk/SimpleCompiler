@@ -13,6 +13,9 @@ configure_file (
 )
 
 add_compile_options(-std=c++11)
+add_compile_options(-fno-stack-protector)
+add_compile_options(-D_FORTIFY_SOURCE=0)
+
 
 set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake")
 set (youroutputdirectory ${CMAKE_BINARY_DIR})

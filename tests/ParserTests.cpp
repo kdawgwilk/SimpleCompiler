@@ -16,9 +16,9 @@ string FILENAME = "test_code_1.c";
 
 class ParserClassTests : public Test {
 protected:
-    MockScannerClass *scanner;
-    MockSymbolTableClass *symbolTable;
-    ParserClass *parser;
+//    MockScannerClass *scanner;
+//    MockSymbolTableClass *symbolTable;
+//    ParserClass *parser;
 
 
     static void SetUpTestCase() {
@@ -30,17 +30,17 @@ protected:
     }
 
     virtual void SetUp() {
-        scanner = new MockScannerClass(FILENAME);
-        symbolTable = new MockSymbolTableClass();
+//        scanner = new MockScannerClass;
+//        symbolTable = new MockSymbolTableClass();
 
 //        MockScannerClass *scanner = new MockScannerClass("test_code_1.c");
 //        MockSymbolTableClass *symbolTable = new MockSymbolTableClass();
 //
-        parser = new ParserClass(scanner, symbolTable);
+//        parser = new ParserClass(scanner, symbolTable);
     }
 
     virtual void TearDown() {
-        delete parser;
+//        delete parser;
     }
 };
 
@@ -59,32 +59,32 @@ TEST_F(ParserClassTests, ParseFile) {
 }
 
 TEST_F(ParserClassTests, ParseMidterm1) {
-    ScannerClass scanner("test_code_midterm1.c");
-    SymbolTableClass symbolTable;
-    ParserClass parser(&scanner, &symbolTable);
-
-    StartNode *startNode = parser.Start();
-
-    cout << "########## Interpret Start ##########" << endl;
-    startNode->Interpret();
-    cout << "########## Interpret End ##########" << endl;
-
-    delete startNode;
+//    ScannerClass scanner("test_code_midterm1.c");
+//    SymbolTableClass symbolTable;
+//    ParserClass parser(&scanner, &symbolTable);
+//
+//    StartNode *startNode = parser.Start();
+//
+//    cout << "########## Interpret Start ##########" << endl;
+//    startNode->Interpret();
+//    cout << "########## Interpret End ##########" << endl;
+//
+//    delete startNode;
     EXPECT_EQ(0, 0);
 }
 
 TEST_F(ParserClassTests, ParseMidterm2) {
-    ScannerClass scanner("test_code_midterm2.c");
-    SymbolTableClass symbolTable;
-    ParserClass parser(&scanner, &symbolTable);
-
-    StartNode *startNode = parser.Start();
-
-    cout << "########## Interpret Start ##########" << endl;
-    startNode->Interpret();
-    cout << "########## Interpret End ##########" << endl;
-
-    delete startNode;
+//    ScannerClass scanner("test_code_midterm2.c");
+//    SymbolTableClass symbolTable;
+//    ParserClass parser(&scanner, &symbolTable);
+//
+//    StartNode *startNode = parser.Start();
+//
+//    cout << "########## Interpret Start ##########" << endl;
+//    startNode->Interpret();
+//    cout << "########## Interpret End ##########" << endl;
+//
+//    delete startNode;
     EXPECT_EQ(0, 0);
 }
 
@@ -95,8 +95,12 @@ TEST_F(ParserClassTests, ParseMidterm2) {
 // MARK: Init
 
 TEST_F(ParserClassTests, Init) {
-    EXPECT_NE(parser->mScanner, nullptr);
-    EXPECT_NE(parser->mSymbolTable, nullptr);
+    MockScannerClass scanner;
+    MockSymbolTableClass symbolTable;
+    ParserClass parser(&scanner, &symbolTable);
+
+    EXPECT_NE(parser.mScanner, nullptr);
+    EXPECT_NE(parser.mSymbolTable, nullptr);
 }
 
 // MARK: Start
@@ -111,7 +115,7 @@ public:
 };
 
 TEST_F(ParserClassTests, Start) {
-    MockScannerClass scanner(FILENAME);
+    MockScannerClass scanner;
     MockSymbolTableClass symbolTable;
     MockForStartParserClass parser(&scanner, &symbolTable);
     string endFile;
@@ -128,7 +132,7 @@ TEST_F(ParserClassTests, Start) {
 // MARK: - Private
 
 TEST_F(ParserClassTests, Match_Valid) {
-    MockScannerClass scanner(FILENAME);
+    MockScannerClass scanner;
     MockSymbolTableClass symbolTable;
     ParserClass parser(&scanner, &symbolTable);
 
@@ -139,14 +143,14 @@ TEST_F(ParserClassTests, Match_Valid) {
 }
 
 TEST_F(ParserClassTests, Match_Invalid) {
-    MockScannerClass scanner(FILENAME);
+    MockScannerClass scanner;
     MockSymbolTableClass symbolTable;
     ParserClass parser(&scanner, &symbolTable);
 
     ON_CALL(scanner, GetNextToken()).WillByDefault(Return(TokenClass(VOID_TOKEN, "void")));
     // WTF: Call goes undetected in when ran inside a EXPECT_EXIT
 //    EXPECT_CALL(scanner, GetNextToken()).Times(1);
-    EXPECT_EXIT(parser.Match(INT_TOKEN), ExitedWithCode(1), "Expected token type INT, but got type VOID");
+    EXPECT_DEATH(parser.Match(INT_TOKEN), "Expected token type INTEGER, but got type VOID");
 }
 
 // MARK: Program
@@ -161,7 +165,7 @@ public:
 };
 
 TEST_F(ParserClassTests, Program) {
-    MockScannerClass scanner(FILENAME);
+    MockScannerClass scanner;
     MockSymbolTableClass symbolTable;
     MockForProgramTestParserClass parser(&scanner, &symbolTable);
 
@@ -189,7 +193,7 @@ public:
 
 
 TEST_F(ParserClassTests, Block) {
-    MockScannerClass scanner(FILENAME);
+    MockScannerClass scanner;
     MockSymbolTableClass symbolTable;
     MockForBlockTestParserClass parser(&scanner, &symbolTable);
 
@@ -214,7 +218,7 @@ public:
 };
 
 //TEST_F(ParserClassTests, StatementGroup) {
-//    MockScannerClass scanner(FILENAME);
+//    MockScannerClass scanner;
 //    MockSymbolTableClass symbolTable;
 //    MockForStatementGroupTestParserClass parser(&scanner, &symbolTable);
 //
@@ -246,12 +250,12 @@ public:
 };
 
 TEST_F(ParserClassTests, Statement_DeclarationStatement) {
-    MockScannerClass scanner(FILENAME);
+    MockScannerClass scanner;
     MockSymbolTableClass symbolTable;
     MockStatementsParserClass parser(&scanner, &symbolTable);
 
     ON_CALL(scanner, PeekNextToken()).WillByDefault(Return(TokenClass(INT_TOKEN, "int")));
-    ON_CALL(parser, DeclarationStatement()).WillByDefault(Return(new DeclarationStatementNode(nullptr)));
+    ON_CALL(parser, DeclarationStatement()).WillByDefault(Return(new DeclarationStatementNode(nullptr, nullptr)));
     EXPECT_CALL(scanner, PeekNextToken()).Times(1);
     EXPECT_CALL(parser, DeclarationStatement()).Times(1);
     auto statementNode = parser.Statement();
@@ -259,12 +263,12 @@ TEST_F(ParserClassTests, Statement_DeclarationStatement) {
 }
 
 TEST_F(ParserClassTests, Statement_IfStatement) {
-    MockScannerClass scanner(FILENAME);
+    MockScannerClass scanner;
     MockSymbolTableClass symbolTable;
     MockStatementsParserClass parser(&scanner, &symbolTable);
 
     ON_CALL(scanner, PeekNextToken()).WillByDefault(Return(TokenClass(IF_TOKEN, "if")));
-    ON_CALL(parser, IfStatement()).WillByDefault(Return(new IfStatementNode(nullptr, nullptr)));
+    ON_CALL(parser, IfStatement()).WillByDefault(Return(new IfStatementNode(nullptr, nullptr, nullptr)));
     EXPECT_CALL(scanner, PeekNextToken()).Times(1);
     EXPECT_CALL(parser, IfStatement()).Times(1);
     auto statementNode = parser.Statement();
@@ -272,7 +276,7 @@ TEST_F(ParserClassTests, Statement_IfStatement) {
 }
 
 TEST_F(ParserClassTests, Statement_WhileStatement) {
-    MockScannerClass scanner(FILENAME);
+    MockScannerClass scanner;
     MockSymbolTableClass symbolTable;
     MockStatementsParserClass parser(&scanner, &symbolTable);
 
@@ -286,7 +290,7 @@ TEST_F(ParserClassTests, Statement_WhileStatement) {
 
 
 TEST_F(ParserClassTests, Statement_AssignmentStatement) {
-    MockScannerClass scanner(FILENAME);
+    MockScannerClass scanner;
     MockSymbolTableClass symbolTable;
     MockStatementsParserClass parser(&scanner, &symbolTable);
 
@@ -299,12 +303,12 @@ TEST_F(ParserClassTests, Statement_AssignmentStatement) {
 }
 
 TEST_F(ParserClassTests, Statement_CoutStatement) {
-    MockScannerClass scanner(FILENAME);
+    MockScannerClass scanner;
     MockSymbolTableClass symbolTable;
     MockStatementsParserClass parser(&scanner, &symbolTable);
 
     ON_CALL(scanner, PeekNextToken()).WillByDefault(Return(TokenClass(COUT_TOKEN, "cout")));
-    ON_CALL(parser, CoutStatement()).WillByDefault(Return(new CoutStatementNode(nullptr)));
+    ON_CALL(parser, CoutStatement()).WillByDefault(Return(new CoutStatementNode()));
     EXPECT_CALL(scanner, PeekNextToken()).Times(1);
     EXPECT_CALL(parser, CoutStatement()).Times(1);
     auto statementNode = parser.Statement();
@@ -312,7 +316,7 @@ TEST_F(ParserClassTests, Statement_CoutStatement) {
 }
 
 TEST_F(ParserClassTests, Statement_Block) {
-    MockScannerClass scanner(FILENAME);
+    MockScannerClass scanner;
     MockSymbolTableClass symbolTable;
     MockStatementsParserClass parser(&scanner, &symbolTable);
 
@@ -325,7 +329,7 @@ TEST_F(ParserClassTests, Statement_Block) {
 }
 
 TEST_F(ParserClassTests, Statement_Null) {
-    MockScannerClass scanner(FILENAME);
+    MockScannerClass scanner;
     MockSymbolTableClass symbolTable;
     MockStatementsParserClass parser(&scanner, &symbolTable);
 
