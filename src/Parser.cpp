@@ -154,7 +154,7 @@ DeclarationStatementNode *ParserClass::DeclarationStatement() {
     return declarationStatementNode;
 }
 
-AssignmentStatementNode *ParserClass::AssignmentStatement() {
+AssignmentNode *ParserClass::AssignmentStatement() {
     auto identifierNode = Identifier();
     auto token = mScanner->PeekNextToken().GetTokenType();
     ExpressionNode *expressionNode;
