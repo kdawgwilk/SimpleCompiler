@@ -1,13 +1,13 @@
 //
-//  TokenTypes.h
+//  TokenTypes.hpp
 //  SimpleCompiler
 //
 //  Created by Kaden Wilkinson on 2/22/17.
 //  Copyright © 2017 Kaden Wilkinson. All rights reserved.
 //
 
-#ifndef TokenTypes_h
-#define TokenTypes_h
+#ifndef TokenTypes_hpp
+#define TokenTypes_hpp
 
 enum TokenType {
     AND_TOKEN,
@@ -108,4 +108,4 @@ const string gTokenTypeNames[LAST_TOKEN] = {
 };
 
 
-#endif /* TokenTypes_h */
+#endif /* TokenTypes_hpp */

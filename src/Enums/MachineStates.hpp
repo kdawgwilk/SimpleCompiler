@@ -1,13 +1,13 @@
 //
-//  MachineStates.h
+//  MachineStates.hpp
 //  SimpleCompiler
 //
 //  Created by Kaden Wilkinson on 2/22/17.
 //  Copyright © 2017 Kaden Wilkinson. All rights reserved.
 //
 
-#ifndef MachineStates_h
-#define MachineStates_h
+#ifndef MachineStates_hpp
+#define MachineStates_hpp
 
 
 enum MachineState {
@@ -54,4 +54,4 @@ enum MachineState {
     LAST_STATE
 };
 
-#endif /* MachineStates_h */
+#endif /* MachineStates_hpp */

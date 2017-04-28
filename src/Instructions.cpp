@@ -8,45 +8,6 @@
 
 #include "Instructions.hpp"
 
-
-const unsigned char PUSH_EBP = 0x55;
-const unsigned char MOV_EBP_ESP1 = 0x8B;
-const unsigned char MOV_EBP_ESP2 = 0xEC;
-const unsigned char POP_EBP = 0x5D;
-const unsigned char NEAR_RET = 0xC3; // C3 hex, 195 decimal, 11000011 binary
-const unsigned char IMMEDIATE_TO_EAX = 0xB8; // followed by 4 byte value.
-const unsigned char PUSH_EAX = 0x50;
-const unsigned char PUSH_EDX = 0x52;
-const unsigned char CALL = 0xE8; // call within segment, Add 4 byte offset in reverse order
-const unsigned char POP_EAX = 0x58;
-const unsigned char EAX_TO_MEM = 0xA3; // A3 hex, Add 4 (or 8) byte address value in reverse order
-const unsigned char MEM_TO_EAX = 0xA1; // A1 hex, Add 4 (or 8) byte address value in reverse order
-
-const unsigned char POP_EBX = 0x5B;
-const unsigned char ADD_EAX_EBX1 = 0x03;
-const unsigned char ADD_EAX_EBX2 = 0xC3;
-const unsigned char SUB_EAX_EBX1 = 0x2B;
-const unsigned char SUB_EAX_EBX2 = 0xC3;
-const unsigned char MUL_EAX_EBX1 = 0xF7;
-const unsigned char MUL_EAX_EBX2 = 0xEB;
-const unsigned char DIV_EAX_EBX1 = 0xF7;
-const unsigned char DIV_EAX_EBX2 = 0xFB;
-const unsigned char CDQ = 0x99;
-const unsigned char CMP_EAX_EBX1 = 0x3B; // compares A and B registers.
-const unsigned char CMP_EAX_EBX2 = 0xC3;
-const unsigned char JUMP_ALWAYS = 0xEB;
-const unsigned char JL = 0x7C;
-const unsigned char JLE = 0x7E;
-const unsigned char JG = 0x7F;
-const unsigned char JGE = 0x7D;
-const unsigned char JE = 0x74;
-const unsigned char JNE = 0x75;
-
-//const unsigned char JE_WORD = 0x84; // 2 byte jump does NOT work!
-const unsigned char JE_FAR1 = 0x0f; // 4 byte jump
-const unsigned char JE_FAR2 = 0x84; // 4 byte jump
-const unsigned char JUMP_ALWAYS_FAR = 0xE9; // 4 byte jump (NOT 2 byte!
-
 // Initialize static class variables
 unsigned char InstructionsClass::mCode[MAX_INSTRUCTIONS] = {0};
 
@@ -95,6 +56,11 @@ void InstructionsClass::Encode(long long x) {
         cerr << "Error. Used up all " << MAX_INSTRUCTIONS << " instructions." << endl;
         exit(1);
     }
+}
+
+void InstructionsClass::Encode(MachineCode machineCode) {
+    InstructionsClass::mMachineCodes.push_back(machineCode);
+    Encode(machineCode.mCode);
 }
 
 void InstructionsClass::Encode(void *p) {
@@ -149,7 +115,6 @@ void InstructionsClass::Execute() {
 //    f = (void (*)(void)) p;
 //    f();
 
-//    pause();
 
     // Bart's Method
     void *ptr = InstructionsClass::mCode;
@@ -162,6 +127,7 @@ void InstructionsClass::Execute() {
 void InstructionsClass::PrintAllMachineCodes() {
     for (int i = 0; i < mCurrent; i++) {
         printf("HEX: %2x  Decimal: %3i\n", (int)InstructionsClass::mCode[i], (int)InstructionsClass::mCode[i]);
+//        printf("Code: %17s HEX: %2x  Decimal: %3i\n", InstructionsClass::mMachineCodes[i].mName.c_str(), (int)InstructionsClass::mCode[i], (int)InstructionsClass::mCode[i]);
     }
 }
 
@@ -305,6 +271,10 @@ void InstructionsClass::PopPopComparePush(unsigned char relationalOperator) {
     Encode(IMMEDIATE_TO_EAX); // load A register with 0
     Encode(0);
     Encode(PUSH_EAX); // push 1 or 0
+}
+
+void InstructionsClass::PopPopComparePush(MachineCode relationalOperator) {
+    PopPopComparePush(relationalOperator.mCode);
 }
 
 void InstructionsClass::PopPopLessPush() {

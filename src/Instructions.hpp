@@ -10,6 +10,7 @@
 #define Instructions_hpp
 
 #include <sys/mman.h>
+#include "MachineCodes.hpp"
 
 const int MAX_INSTRUCTIONS = 5000;
 const int MAX_DATA = 5000;
@@ -18,6 +19,7 @@ const int MAX_DATA = 5000;
 class InstructionsClass {
     // NOTE: Using an stl vector does not work, because they relocate their array sometimes.
     static unsigned char mCode[MAX_INSTRUCTIONS];
+    vector<MachineCode> mMachineCodes;
     int mCurrent;
     int mData[MAX_DATA];
 
@@ -26,6 +28,7 @@ public:
     void Encode(int x);
     void Encode(unsigned char c);
     void Encode(long long x);
+    void Encode(MachineCode machineCode);
     void Encode(void *p);
 
     // Starting, ending, and executing mCode
@@ -54,6 +57,7 @@ public:
 
     // Relational Operators
     void PopPopComparePush(unsigned char relationalOperator);
+    void PopPopComparePush(MachineCode relationalOperator);
     // common code for the relational operators
     // Puts 1 or 0 on stack.
     void PopPopLessPush();

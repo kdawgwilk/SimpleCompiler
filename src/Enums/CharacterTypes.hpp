@@ -1,13 +1,13 @@
 //
-//  CharacterTypes.h
+//  CharacterTypes.hpp
 //  SimpleCompiler
 //
 //  Created by Kaden Wilkinson on 2/22/17.
 //  Copyright © 2017 Kaden Wilkinson. All rights reserved.
 //
 
-#ifndef CharacterTypes_h
-#define CharacterTypes_h
+#ifndef CharacterTypes_hpp
+#define CharacterTypes_hpp
 
 
 enum CharacterType {
