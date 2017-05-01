@@ -353,8 +353,8 @@ void PlusEqualStatementNode::Interpret() {
 }
 
 void PlusEqualStatementNode::Code(InstructionsClass &instructions) {
-    mExpressionNode->CodeEvaluate(instructions);
     mIdentifierNode->CodeEvaluate(instructions);
+    mExpressionNode->CodeEvaluate(instructions);
     instructions.PopPopAddPush();
     instructions.PopAndStore(mIdentifierNode->GetIndex());
 }
@@ -374,8 +374,8 @@ void MinusEqualStatementNode::Interpret() {
 }
 
 void MinusEqualStatementNode::Code(InstructionsClass &instructions) {
-    mExpressionNode->CodeEvaluate(instructions);
     mIdentifierNode->CodeEvaluate(instructions);
+    mExpressionNode->CodeEvaluate(instructions);
     instructions.PopPopSubPush();
     instructions.PopAndStore(mIdentifierNode->GetIndex());
 }
@@ -394,8 +394,8 @@ void TimesEqualStatementNode::Interpret() {
 }
 
 void TimesEqualStatementNode::Code(InstructionsClass &instructions) {
-    mExpressionNode->CodeEvaluate(instructions);
     mIdentifierNode->CodeEvaluate(instructions);
+    mExpressionNode->CodeEvaluate(instructions);
     instructions.PopPopMulPush();
     instructions.PopAndStore(mIdentifierNode->GetIndex());
 }
@@ -414,8 +414,8 @@ void DivideEqualStatementNode::Interpret() {
 }
 
 void DivideEqualStatementNode::Code(InstructionsClass &instructions) {
-    mExpressionNode->CodeEvaluate(instructions);
     mIdentifierNode->CodeEvaluate(instructions);
+    mExpressionNode->CodeEvaluate(instructions);
     instructions.PopPopDivPush();
     instructions.PopAndStore(mIdentifierNode->GetIndex());
 }

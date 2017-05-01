@@ -65,6 +65,7 @@ const unsigned char POP_EBP = 0x5D;
 const unsigned char NEAR_RET = 0xC3; // C3 hex, 195 decimal, 11000011 binary
 const unsigned char IMMEDIATE_TO_EAX = 0xB8; // followed by 4 byte value.
 const unsigned char PUSH_EAX = 0x50;
+//const unsigned char PUSH_EBX = 0x50;
 const unsigned char PUSH_EDX = 0x52;
 const unsigned char CALL = 0xE8; // call within segment, Add 4 byte offset in reverse order
 const unsigned char POP_EAX = 0x58;

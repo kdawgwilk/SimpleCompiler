@@ -353,16 +353,22 @@ void InstructionsClass::PopPopOrPush() {
 
 // TODO: Finish Me
 void InstructionsClass::PopNotPush() {
-//    Encode(POP_EBX);
-//    Encode(NOT);
-//    Encode(PUSH_EAX);
+    Encode(POP_EBP);            // Load EBP register with value
+    Encode(IMMEDIATE_TO_EAX);   // load EAX register with 0
+    Encode(0);
+    Encode(PUSH_EAX);           // Push zero to stack
+    Encode(PUSH_EBP);           // Push Value to stack
+    PopPopEqualPush();          // Compare last two stack values
 }
 
 // TODO: Finish Me
 void InstructionsClass::PopNegatePush() {
-//    Encode(POP_EBX);
-//    Encode(NEGATE_EAX);
-//    Encode(PUSH_EAX);
+    Encode(POP_EBP);            // Load EBP register with value
+    Encode(IMMEDIATE_TO_EAX);   // load EAX register with 0
+    Encode(0);
+    Encode(PUSH_EAX);           // Push zero to stack
+    Encode(PUSH_EBP);           // Push Value to stack
+    PopPopSubPush();            // Subtract last two values on stack
 }
 
 unsigned char *InstructionsClass::SkipIfZeroStack() {
