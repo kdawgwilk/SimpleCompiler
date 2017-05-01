@@ -610,7 +610,7 @@ MinusNode::MinusNode(ExpressionNode *leftSide, ExpressionNode *rightSide)
 }
 
 int MinusNode::Evaluate() {
-    return mLeftSide->Evaluate() + mRightSide->Evaluate();
+    return mLeftSide->Evaluate() - mRightSide->Evaluate();
 }
 
 void MinusNode::CodeEvaluate(InstructionsClass &instructions) {
@@ -627,7 +627,7 @@ TimesNode::TimesNode(ExpressionNode *leftSide, ExpressionNode *rightSide)
 }
 
 int TimesNode::Evaluate() {
-    return mLeftSide->Evaluate() + mRightSide->Evaluate();
+    return mLeftSide->Evaluate() * mRightSide->Evaluate();
 }
 
 void TimesNode::CodeEvaluate(InstructionsClass &instructions) {
@@ -644,7 +644,7 @@ DivideNode::DivideNode(ExpressionNode *leftSide, ExpressionNode *rightSide)
 }
 
 int DivideNode::Evaluate() {
-    return mLeftSide->Evaluate() + mRightSide->Evaluate();
+    return mLeftSide->Evaluate() / mRightSide->Evaluate();
 }
 
 void DivideNode::CodeEvaluate(InstructionsClass &instructions) {
@@ -796,10 +796,9 @@ int NotNode::Evaluate() {
     return !mExpression->Evaluate();
 }
 
-// TODO: Swap boolean
 void NotNode::CodeEvaluate(InstructionsClass &instructions) {
     mExpression->CodeEvaluate(instructions);
-//    instructions.PopNotPush();
+    instructions.PopNotPush();
 }
 
 // MARK: - Not
@@ -813,10 +812,9 @@ int NegativeNode::Evaluate() {
     return -mExpression->Evaluate();
 }
 
-// TODO: Finish negate
 void NegativeNode::CodeEvaluate(InstructionsClass &instructions) {
     mExpression->CodeEvaluate(instructions);
-//    instructions.PopNegatePush();
+    instructions.PopNegatePush();
 }
 
 

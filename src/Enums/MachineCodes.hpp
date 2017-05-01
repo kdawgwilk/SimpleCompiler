@@ -97,4 +97,8 @@ const unsigned char JE_FAR2 = 0x84; // 4 byte jump
 const unsigned char JUMP_ALWAYS_FAR = 0xE9; // 4 byte jump (NOT 2 byte!
 
 
+//const unsigned char NEG = 0xF7;
+//const unsigned char NOT = 0xF7;
+
+
 #endif /* MachineCodes_hpp */

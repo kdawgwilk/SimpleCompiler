@@ -71,6 +71,10 @@ public:
     void PopPopAndPush();
     void PopPopOrPush();
 
+    // Unary Operators
+    void PopNotPush();
+    void PopNegatePush();
+
     // Jumping around based on the top of stack being 1 or 0.
     unsigned char *SkipIfZeroStack(); // skips some number of bytes forward, if the integer on the stack is zero.
     // The number of bytes to skip forward MUST be later set by calling SetOffset with the return value.

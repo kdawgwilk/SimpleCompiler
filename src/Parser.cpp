@@ -23,7 +23,7 @@ TokenClass ParserClass::Match(TokenType expectedType) {
     auto currentToken = mScanner->GetNextToken();
     if(currentToken.GetTokenType() != expectedType) {
 //        cerr << "Error in ParserClass::Match. " << endl;
-        cerr << "ERROR: " << mScanner->GetFilename() << "[" << mScanner->GetLineNumber() << "," << mScanner->GetColumnNumber() << "]: ";
+        cerr << "Parser Error: " << mScanner->GetFilename() << "[" << mScanner->GetLineNumber() << "," << mScanner->GetColumnNumber() << "]: ";
         cerr << "Expected token type " << TokenClass::GetTypeString(expectedType) << ", but got type " << currentToken.GetTokenTypeName() << endl;
         exit(1);
     }
@@ -90,7 +90,6 @@ StatementNode *ParserClass::Statement() {
     }
 }
 
-// TODO: Test this code
 IfStatementNode *ParserClass::IfStatement() {
     Match(IF_TOKEN);
     Match(LPAREN_TOKEN);
@@ -107,7 +106,6 @@ IfStatementNode *ParserClass::IfStatement() {
     return ifStatementNode;
 }
 
-// TODO: Test this code
 WhileStatementNode *ParserClass::WhileStatement() {
     Match(WHILE_TOKEN);
     Match(LPAREN_TOKEN);
@@ -226,25 +224,21 @@ ExpressionNode *ParserClass::Expression() {
     return Or();
 }
 
-// TODO: Test me
 ExpressionNode *ParserClass::Or() {
     auto current = And();
     auto tokenType = mScanner->PeekNextToken().GetTokenType();
     if (tokenType == OR_TOKEN) {
         Match(tokenType);
-
         current = new OrNode(current, And());
     }
     return current;
 }
 
-// TODO: Test me
 ExpressionNode *ParserClass::And() {
     auto current = Relationals();
     auto tokenType = mScanner->PeekNextToken().GetTokenType();
     if (tokenType == AND_TOKEN) {
         Match(tokenType);
-
         current = new AndNode(current, Relationals());
     }
     return current;
@@ -253,39 +247,29 @@ ExpressionNode *ParserClass::And() {
 ExpressionNode *ParserClass::Relationals() {
     auto current = PlusMinus();
     auto tokenType = mScanner->PeekNextToken().GetTokenType();
-    if (tokenType == LESS_THAN_TOKEN ||
-        tokenType == LESS_THAN_OR_EQUAL_TOKEN ||
-        tokenType == GREATER_THAN_TOKEN ||
-        tokenType == GREATER_THAN_OR_EQUAL_TOKEN ||
-        tokenType == EQUAL_TOKEN ||
-        tokenType == NOT_EQUAL_TOKEN)
-    {
-        Match(tokenType); // Match the relational operator
 
-        switch (tokenType) {
-            case LESS_THAN_TOKEN:
-                current = new LessNode(current, PlusMinus());
-                break;
-            case LESS_THAN_OR_EQUAL_TOKEN:
-                current = new LessEqualNode(current, PlusMinus());
-                break;
-            case GREATER_THAN_TOKEN:
-                current = new GreaterNode(current, PlusMinus());
-                break;
-            case GREATER_THAN_OR_EQUAL_TOKEN:
-                current = new GreaterEqualNode(current, PlusMinus());
-                break;
-            case EQUAL_TOKEN:
-                current = new EqualNode(current, PlusMinus());
-                break;
-            case NOT_EQUAL_TOKEN:
-                current = new NotEqualNode(current, PlusMinus());
-                break;
-            default:
-                break;
-        }
+    switch (tokenType) {
+        case LESS_THAN_TOKEN:
+            Match(tokenType);
+            return new LessNode(current, PlusMinus());
+        case LESS_THAN_OR_EQUAL_TOKEN:
+            Match(tokenType);
+            return new LessEqualNode(current, PlusMinus());
+        case GREATER_THAN_TOKEN:
+            Match(tokenType);
+            return new GreaterNode(current, PlusMinus());
+        case GREATER_THAN_OR_EQUAL_TOKEN:
+            Match(tokenType);
+            return new GreaterEqualNode(current, PlusMinus());
+        case EQUAL_TOKEN:
+            Match(tokenType);
+            return new EqualNode(current, PlusMinus());
+        case NOT_EQUAL_TOKEN:
+            Match(tokenType);
+            return new NotEqualNode(current, PlusMinus());
+        default:
+            return current;
     }
-    return current;
 }
 
 ExpressionNode *ParserClass::PlusMinus() {
@@ -295,15 +279,12 @@ ExpressionNode *ParserClass::PlusMinus() {
         switch (token) {
             case PLUS_TOKEN:
                 Match(token);
-                current = new PlusNode(current, TimesDivide());
-                break;
+                return new PlusNode(current, TimesDivide());
             case MINUS_TOKEN:
                 Match(token);
-                current = new MinusNode(current, TimesDivide());
-                break;
+                return new MinusNode(current, TimesDivide());
             default:
                 return current;
-                break;
         }
     }
 }
@@ -315,47 +296,38 @@ ExpressionNode *ParserClass::TimesDivide() {
         switch (token) {
             case TIMES_TOKEN:
                 Match(token);
-                current = new TimesNode(current, Unaries());
-                break;
+                return new TimesNode(current, Unaries());
             case DIVIDE_TOKEN:
                 Match(token);
-                current = new DivideNode(current, Unaries());
-                break;
+                return new DivideNode(current, Unaries());
             case MODULO_TOKEN:
                 Match(token);
-                current = new ModulusNode(current, Unaries());
-                break;
+                return new ModulusNode(current, Unaries());
             default:
                 return current;
-                break;
         }
     }
 }
 
-// TODO: Test this code
+// FIXME: Not and Negative not working
 ExpressionNode *ParserClass::Unaries() {
-    auto current = Factor();
     while (true) {
         auto token = mScanner->PeekNextToken().GetTokenType();
         switch (token) {
             case NOT_TOKEN:
                 Match(token);
-                current = new NotNode(Factor());
-                break;
-            case NEGATIVE_TOKEN:
+                return new NotNode(Factor());
+            case MINUS_TOKEN:
                 Match(token);
-                current = new NegativeNode(Factor());
-                break;
+                return new NegativeNode(Factor());
             default:
-                return current;
-                break;
+                return Factor();
         }
     }
-
 }
 
 /**
- The Factor() method is implemented by looking ahead one token. 
+ The Factor() method is implemented by looking ahead one token.
  If the token type is IDENTIFIER or INTEGER, it recursively calls methods by those names, and returns whatever they return. 
  If the next token type is an LPAREN, the code should match the LPAREN, recursively call Expression, and then match the RPAREN. 
  It should return whatever the recursive call to Expression returns. 
@@ -367,34 +339,28 @@ ExpressionNode *ParserClass::Factor() {
     switch (tokenType) {
         case IDENTIFIER_TOKEN:
             return Identifier();
-            break;
         case INTEGER_TOKEN:
             return Integer();
-            break;
         case LPAREN_TOKEN: {
             Match(LPAREN_TOKEN);
             auto expressionNode = Expression();
             Match(RPAREN_TOKEN);
             return expressionNode;
-            break;
         }
         default:
-            cerr << "Unexpected token: \n" << token << endl;
+            cerr << "Parser Error: Unexpected token: " << mScanner->GetFilename() <<  " [" << mScanner->GetLineNumber() << "," << mScanner->GetColumnNumber() << "]" << "\n" << token << endl;
             exit(1);
-            break;
     }
 }
 
 IdentifierNode *ParserClass::Identifier() {
     auto token = Match(IDENTIFIER_TOKEN);
-    auto identifierNode = new IdentifierNode(token.GetLexeme(), mSymbolTable);
-    return identifierNode;
+    return new IdentifierNode(token.GetLexeme(), mSymbolTable);
 }
 
 IntegerNode *ParserClass::Integer() {
     auto token = Match(INTEGER_TOKEN);
-    auto integerNode = new IntegerNode(atoi(token.GetLexeme().c_str()));
-    return integerNode;
+    return new IntegerNode(atoi(token.GetLexeme().c_str()));
 }
 
 

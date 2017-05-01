@@ -351,6 +351,20 @@ void InstructionsClass::PopPopOrPush() {
     Encode(PUSH_EAX); // push 1 or 0
 }
 
+// TODO: Finish Me
+void InstructionsClass::PopNotPush() {
+//    Encode(POP_EBX);
+//    Encode(NOT);
+//    Encode(PUSH_EAX);
+}
+
+// TODO: Finish Me
+void InstructionsClass::PopNegatePush() {
+//    Encode(POP_EBX);
+//    Encode(NEGATE_EAX);
+//    Encode(PUSH_EAX);
+}
+
 unsigned char *InstructionsClass::SkipIfZeroStack() {
     Encode(POP_EBX);
     Encode(IMMEDIATE_TO_EAX); // load A register with 0

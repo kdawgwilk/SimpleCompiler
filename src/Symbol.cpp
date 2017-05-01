@@ -88,12 +88,10 @@ int SymbolTableClass::GetCount() {
     return int(mVariables.size());
 }
 
-// TODO: Push the mVariables length to mScope list
 void SymbolTableClass::PushScope() {
     mScope.push_back((int)mVariables.size());
 }
 
-// TODO: Pop the top mVariables length from mScope and delelete variables
 void SymbolTableClass::PopScope() {
     int currentVariableCount = GetCount();
     int lastScopeVariableCount = mScope[mScope.size() - 1];

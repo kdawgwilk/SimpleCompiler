@@ -41,11 +41,14 @@ TokenClass ScannerClass::GetNextToken() {
         if (state == START_STATE) {
             lexeme = "";
         }
-
+        if (c == '\n') {
+            mColumnNumber = 1;
+        }
+        
         if (state == CANT_MOVE_STATE) {
             if (correspondingTokenType == BAD_TOKEN) {
                 lexeme.append(1, c);
-                cerr << "ERROR: " << mFilename << ": [" << mLineNumber << "," << mColumnNumber << "] Unrecognized token: '" << lexeme << "'" << endl;
+                cerr << "Scanner Error: " << mFilename << ": [" << mLineNumber << "," << mColumnNumber << "] Unrecognized token: '" << lexeme << "'" << endl;
                 exit(1);
             }
             mFin->unget();
@@ -57,7 +60,7 @@ TokenClass ScannerClass::GetNextToken() {
         if (c == '\n') {
 //            MSG("Line Number: " << mLineNumber)
             mLineNumber++;
-            mColumnNumber = 0;
+            mColumnNumber = 1;
         }
         if (state != START_STATE) {
 

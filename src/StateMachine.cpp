@@ -8,7 +8,6 @@
 
 #include "StateMachine.hpp"
 
-// TODO: Add handling for && and ||
 StateMachineClass::StateMachineClass()
 : mCurrentState(START_STATE)
 {
@@ -21,60 +20,50 @@ StateMachineClass::StateMachineClass()
 
     // Set legal moves for each state
     // START_STATE
-    mLegalMoves[START_STATE][WHITESPACE_CHAR]             = START_STATE;
-    mLegalMoves[START_STATE][NEWLINE_CHAR]                = START_STATE;
-    mLegalMoves[START_STATE][DIGIT_CHAR]                  = INTEGER_STATE;
-    mLegalMoves[START_STATE][FSLASH_CHAR]                 = DIVIDE_STATE;
-    mLegalMoves[START_STATE][ENDFILE_CHAR]                = ENDFILE_STATE;
-    mLegalMoves[START_STATE][LESS_THAN_CHAR]              = LESS_THAN_STATE;
-    mLegalMoves[START_STATE][LPAREN_CHAR]                 = LPAREN_STATE;
-    mLegalMoves[START_STATE][RPAREN_CHAR]                 = RPAREN_STATE;
-    mLegalMoves[START_STATE][LCURLY_CHAR]                 = LCURLY_STATE;
-    mLegalMoves[START_STATE][RCURLY_CHAR]                 = RCURLY_STATE;
-    mLegalMoves[START_STATE][LBRACKET_CHAR]               = LBRACKET_STATE;
-    mLegalMoves[START_STATE][RBRACKET_CHAR]               = RBRACKET_STATE;
-    mLegalMoves[START_STATE][GREATER_THAN_CHAR]           = GREATER_THAN_STATE;
-    mLegalMoves[START_STATE][EQUAL_CHAR]                  = EQUAL_STATE;
     mLegalMoves[START_STATE][AND_CHAR]                    = AND_STATE;
-    mLegalMoves[START_STATE][VBAR_CHAR]                   = VBAR_STATE;
+    mLegalMoves[START_STATE][DIGIT_CHAR]                  = INTEGER_STATE;
+    mLegalMoves[START_STATE][ENDFILE_CHAR]                = ENDFILE_STATE;
+    mLegalMoves[START_STATE][EQUAL_CHAR]                  = EQUAL_STATE;
     mLegalMoves[START_STATE][EXCLAMATION_CHAR]            = NOT_STATE;
-    mLegalMoves[START_STATE][STAR_CHAR]                   = TIMES_STATE;
-    mLegalMoves[START_STATE][SEMICOLON_CHAR]              = SEMICOLON_STATE;
-    mLegalMoves[START_STATE][PLUS_CHAR]                   = PLUS_STATE;
-    mLegalMoves[START_STATE][MINUS_CHAR]                  = MINUS_STATE;
+    mLegalMoves[START_STATE][FSLASH_CHAR]                 = DIVIDE_STATE;
+    mLegalMoves[START_STATE][GREATER_THAN_CHAR]           = GREATER_THAN_STATE;
+    mLegalMoves[START_STATE][LBRACKET_CHAR]               = LBRACKET_STATE;
+    mLegalMoves[START_STATE][LCURLY_CHAR]                 = LCURLY_STATE;
+    mLegalMoves[START_STATE][LESS_THAN_CHAR]              = LESS_THAN_STATE;
     mLegalMoves[START_STATE][LETTER_CHAR]                 = IDENTIFIER_STATE;
-
-    mLegalMoves[INTEGER_STATE][DIGIT_CHAR]                = INTEGER_STATE;
-
-    mLegalMoves[DIVIDE_STATE][FSLASH_CHAR]                = LINE_COMMENT_STATE;
-    mLegalMoves[DIVIDE_STATE][STAR_CHAR]                  = MULTILINE_COMMENT_START_STATE;
-    mLegalMoves[DIVIDE_STATE][EQUAL_CHAR]                 = DIVIDE_EQUAL_STATE;
-
-    mLegalMoves[LESS_THAN_STATE][EQUAL_CHAR]              = LESS_THAN_OR_EQUAL_STATE;
-    mLegalMoves[LESS_THAN_STATE][LESS_THAN_CHAR]          = INSERTION_STATE;
-
-    mLegalMoves[GREATER_THAN_STATE][EQUAL_CHAR]           = GREATER_THAN_OR_EQUAL_STATE;
-    mLegalMoves[GREATER_THAN_STATE][GREATER_THAN_CHAR]    = EXTRACTION_STATE;
-
-    mLegalMoves[EQUAL_STATE][EQUAL_CHAR]                  = EQUAL_TO_STATE;
+    mLegalMoves[START_STATE][LPAREN_CHAR]                 = LPAREN_STATE;
+    mLegalMoves[START_STATE][MINUS_CHAR]                  = MINUS_STATE;
+    mLegalMoves[START_STATE][NEWLINE_CHAR]                = START_STATE;
+    mLegalMoves[START_STATE][PERCENT_CHAR]                = MODULO_STATE;
+    mLegalMoves[START_STATE][PLUS_CHAR]                   = PLUS_STATE;
+    mLegalMoves[START_STATE][RBRACKET_CHAR]               = RBRACKET_STATE;
+    mLegalMoves[START_STATE][RCURLY_CHAR]                 = RCURLY_STATE;
+    mLegalMoves[START_STATE][RPAREN_CHAR]                 = RPAREN_STATE;
+    mLegalMoves[START_STATE][SEMICOLON_CHAR]              = SEMICOLON_STATE;
+    mLegalMoves[START_STATE][STAR_CHAR]                   = TIMES_STATE;
+    mLegalMoves[START_STATE][VBAR_CHAR]                   = VBAR_STATE;
+    mLegalMoves[START_STATE][WHITESPACE_CHAR]             = START_STATE;
 
     mLegalMoves[AND_STATE][AND_CHAR]                      = AND_AND_STATE;
-
-    mLegalMoves[VBAR_STATE][VBAR_CHAR]                    = VBAR_VBAR_STATE;
-
-    mLegalMoves[NOT_STATE][EQUAL_CHAR]                    = NOT_EQUAL_STATE;
-
-    mLegalMoves[TIMES_STATE][EQUAL_CHAR]                  = TIMES_EQUAL_STATE;
-
-    mLegalMoves[PLUS_STATE][PLUS_CHAR]                    = PLUS_PLUS_STATE;
-    mLegalMoves[PLUS_STATE][EQUAL_CHAR]                   = PLUS_EQUAL_STATE;
-
-    mLegalMoves[MINUS_STATE][MINUS_CHAR]                  = MINUS_MINUS_STATE;
-    mLegalMoves[MINUS_STATE][EQUAL_CHAR]                  = MINUS_EQUAL_STATE;
-
-    mLegalMoves[IDENTIFIER_STATE][LETTER_CHAR]            = IDENTIFIER_STATE;
+    mLegalMoves[DIVIDE_STATE][EQUAL_CHAR]                 = DIVIDE_EQUAL_STATE;
+    mLegalMoves[DIVIDE_STATE][FSLASH_CHAR]                = LINE_COMMENT_STATE;
+    mLegalMoves[DIVIDE_STATE][STAR_CHAR]                  = MULTILINE_COMMENT_START_STATE;
+    mLegalMoves[EQUAL_STATE][EQUAL_CHAR]                  = EQUAL_TO_STATE;
+    mLegalMoves[GREATER_THAN_STATE][EQUAL_CHAR]           = GREATER_THAN_OR_EQUAL_STATE;
+    mLegalMoves[GREATER_THAN_STATE][GREATER_THAN_CHAR]    = EXTRACTION_STATE;
     mLegalMoves[IDENTIFIER_STATE][DIGIT_CHAR]             = IDENTIFIER_STATE;
+    mLegalMoves[IDENTIFIER_STATE][LETTER_CHAR]            = IDENTIFIER_STATE;
     mLegalMoves[IDENTIFIER_STATE][UNDERSCORE_CHAR]        = IDENTIFIER_STATE;
+    mLegalMoves[INTEGER_STATE][DIGIT_CHAR]                = INTEGER_STATE;
+    mLegalMoves[LESS_THAN_STATE][EQUAL_CHAR]              = LESS_THAN_OR_EQUAL_STATE;
+    mLegalMoves[LESS_THAN_STATE][LESS_THAN_CHAR]          = INSERTION_STATE;
+    mLegalMoves[MINUS_STATE][EQUAL_CHAR]                  = MINUS_EQUAL_STATE;
+    mLegalMoves[MINUS_STATE][MINUS_CHAR]                  = MINUS_MINUS_STATE;
+    mLegalMoves[NOT_STATE][EQUAL_CHAR]                    = NOT_EQUAL_STATE;
+    mLegalMoves[PLUS_STATE][EQUAL_CHAR]                   = PLUS_EQUAL_STATE;
+    mLegalMoves[PLUS_STATE][PLUS_CHAR]                    = PLUS_PLUS_STATE;
+    mLegalMoves[TIMES_STATE][EQUAL_CHAR]                  = TIMES_EQUAL_STATE;
+    mLegalMoves[VBAR_STATE][VBAR_CHAR]                    = VBAR_VBAR_STATE;
 
     // Single line comment
     for (int j = 0; j < LAST_CHAR; j ++) {
@@ -102,37 +91,39 @@ StateMachineClass::StateMachineClass()
     }
 
     // Set allowed tokenTypes for each MachineState
-    mCorrespondingTokenTypes[INTEGER_STATE]               = INTEGER_TOKEN;
-    mCorrespondingTokenTypes[DIVIDE_STATE]                = DIVIDE_TOKEN;
+    mCorrespondingTokenTypes[AND_AND_STATE]               = AND_TOKEN;
     mCorrespondingTokenTypes[DIVIDE_EQUAL_STATE]          = DIVIDE_EQUAL_TOKEN;
+    mCorrespondingTokenTypes[DIVIDE_STATE]                = DIVIDE_TOKEN;
     mCorrespondingTokenTypes[ENDFILE_STATE]               = ENDFILE_TOKEN;
-    mCorrespondingTokenTypes[LESS_THAN_STATE]             = LESS_THAN_TOKEN;
-    mCorrespondingTokenTypes[LESS_THAN_OR_EQUAL_STATE]    = LESS_THAN_OR_EQUAL_TOKEN;
-    mCorrespondingTokenTypes[INSERTION_STATE]             = INSERTION_TOKEN;
-    mCorrespondingTokenTypes[LPAREN_STATE]                = LPAREN_TOKEN;
-    mCorrespondingTokenTypes[RPAREN_STATE]                = RPAREN_TOKEN;
-    mCorrespondingTokenTypes[LCURLY_STATE]                = LCURLY_TOKEN;
-    mCorrespondingTokenTypes[RCURLY_STATE]                = RCURLY_TOKEN;
-    mCorrespondingTokenTypes[LBRACKET_STATE]              = LBRACKET_TOKEN;
-    mCorrespondingTokenTypes[RBRACKET_STATE]              = RBRACKET_TOKEN;
-    mCorrespondingTokenTypes[GREATER_THAN_STATE]          = GREATER_THAN_TOKEN;
-    mCorrespondingTokenTypes[EXTRACTION_STATE]            = EXTRACTION_TOKEN;
-    mCorrespondingTokenTypes[GREATER_THAN_OR_EQUAL_STATE] = GREATER_THAN_OR_EQUAL_TOKEN;
     mCorrespondingTokenTypes[EQUAL_STATE]                 = ASSIGNMENT_TOKEN;
     mCorrespondingTokenTypes[EQUAL_TO_STATE]              = EQUAL_TOKEN;
-    mCorrespondingTokenTypes[NOT_EQUAL_STATE]             = NOT_EQUAL_TOKEN;
-    mCorrespondingTokenTypes[AND_AND_STATE]               = AND_TOKEN;
-    mCorrespondingTokenTypes[VBAR_VBAR_STATE]             = OR_TOKEN;
-    mCorrespondingTokenTypes[TIMES_STATE]                 = TIMES_TOKEN;
-    mCorrespondingTokenTypes[TIMES_EQUAL_STATE]           = TIMES_EQUAL_TOKEN;
-    mCorrespondingTokenTypes[SEMICOLON_STATE]             = SEMICOLON_TOKEN;
-    mCorrespondingTokenTypes[PLUS_STATE]                  = PLUS_TOKEN;
-    mCorrespondingTokenTypes[PLUS_PLUS_STATE]             = INCREMENT_TOKEN;
-    mCorrespondingTokenTypes[PLUS_EQUAL_STATE]            = PLUS_EQUAL_TOKEN;
-    mCorrespondingTokenTypes[MINUS_STATE]                 = MINUS_TOKEN;
-    mCorrespondingTokenTypes[MINUS_MINUS_STATE]           = DECREMENT_TOKEN;
-    mCorrespondingTokenTypes[MINUS_EQUAL_STATE]           = MINUS_EQUAL_TOKEN;
+    mCorrespondingTokenTypes[EXTRACTION_STATE]            = EXTRACTION_TOKEN;
+    mCorrespondingTokenTypes[GREATER_THAN_OR_EQUAL_STATE] = GREATER_THAN_OR_EQUAL_TOKEN;
+    mCorrespondingTokenTypes[GREATER_THAN_STATE]          = GREATER_THAN_TOKEN;
     mCorrespondingTokenTypes[IDENTIFIER_STATE]            = IDENTIFIER_TOKEN;
+    mCorrespondingTokenTypes[INSERTION_STATE]             = INSERTION_TOKEN;
+    mCorrespondingTokenTypes[INTEGER_STATE]               = INTEGER_TOKEN;
+    mCorrespondingTokenTypes[LBRACKET_STATE]              = LBRACKET_TOKEN;
+    mCorrespondingTokenTypes[LCURLY_STATE]                = LCURLY_TOKEN;
+    mCorrespondingTokenTypes[LESS_THAN_OR_EQUAL_STATE]    = LESS_THAN_OR_EQUAL_TOKEN;
+    mCorrespondingTokenTypes[LESS_THAN_STATE]             = LESS_THAN_TOKEN;
+    mCorrespondingTokenTypes[LPAREN_STATE]                = LPAREN_TOKEN;
+    mCorrespondingTokenTypes[MINUS_EQUAL_STATE]           = MINUS_EQUAL_TOKEN;
+    mCorrespondingTokenTypes[MINUS_MINUS_STATE]           = DECREMENT_TOKEN;
+    mCorrespondingTokenTypes[MINUS_STATE]                 = MINUS_TOKEN;
+    mCorrespondingTokenTypes[MODULO_STATE]                = MODULO_TOKEN;
+    mCorrespondingTokenTypes[NOT_EQUAL_STATE]             = NOT_EQUAL_TOKEN;
+    mCorrespondingTokenTypes[NOT_STATE]                   = NOT_TOKEN;
+    mCorrespondingTokenTypes[PLUS_EQUAL_STATE]            = PLUS_EQUAL_TOKEN;
+    mCorrespondingTokenTypes[PLUS_PLUS_STATE]             = INCREMENT_TOKEN;
+    mCorrespondingTokenTypes[PLUS_STATE]                  = PLUS_TOKEN;
+    mCorrespondingTokenTypes[RBRACKET_STATE]              = RBRACKET_TOKEN;
+    mCorrespondingTokenTypes[RCURLY_STATE]                = RCURLY_TOKEN;
+    mCorrespondingTokenTypes[RPAREN_STATE]                = RPAREN_TOKEN;
+    mCorrespondingTokenTypes[SEMICOLON_STATE]             = SEMICOLON_TOKEN;
+    mCorrespondingTokenTypes[TIMES_EQUAL_STATE]           = TIMES_EQUAL_TOKEN;
+    mCorrespondingTokenTypes[TIMES_STATE]                 = TIMES_TOKEN;
+    mCorrespondingTokenTypes[VBAR_VBAR_STATE]             = OR_TOKEN;
 }
 
 StateMachineClass::~StateMachineClass() {}
@@ -172,6 +163,9 @@ MachineState StateMachineClass::UpdateState(const char currentCharacter, TokenTy
             break;
         case '/':
             charType = FSLASH_CHAR;
+            break;
+        case '%':
+            charType = PERCENT_CHAR;
             break;
         case '\\':
             charType = BSLASH_CHAR;

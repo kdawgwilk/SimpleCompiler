@@ -184,7 +184,7 @@ TEST_F(ScannerClassTests, GetNextToken_BadToken) {
     ScannerClass scanner(filename, fileStreamer);
 
     scanner.GetNextToken();
-    EXPECT_DEATH(scanner.GetNextToken(), "ERROR: : \\\[1,6] Unrecognized token: '@'");
+    EXPECT_DEATH(scanner.GetNextToken(), "Error: : \\\[1,6] Unrecognized token: '@'");
 }
 
 TEST_F(ScannerClassTests, PeekNextToken) {
